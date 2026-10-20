@@ -1,0 +1,39 @@
+Prebuilt Windows x64 libraries in compat/
+=========================================
+
+All built with VS2015 Update 3 (v140, cl 19.00.24215.1), x64, static CRT (/MT),
+no /GL and no debug info, so they link into the v140 project and embed no build
+paths. Build from a subst drive with TEMP/TMP on it (lib.exe records the temp
+file name of converted resources):  subst X: <build dir> && set TEMP=X:\tmp
+
+zlib 1.3.1        -> curl-for-windows/out/x64/Release/lib/zlib.x64.lib
+  sha256(zlib-1.3.1.tar.gz) = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
+  nmake -f win32\Makefile.msc CFLAGS="-nologo -MT -W3 -O2 -Oy-" zlib.lib
+
+OpenSSL 1.1.1w    -> libssl.x64.lib, libcrypto.x64.lib
+  sha256(openssl-1.1.1w.tar.gz) = cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
+  (Strawberry Perl + NASM on PATH)
+  perl Configure VC-WIN64A no-shared no-tests no-engine no-dso no-capieng
+       --prefix=C:\openssl --openssldir=C:\openssl\ssl
+  makefile: drop "/Zi /Fdossl_static.pdb" from LIB_CFLAGS, "-g" from ASFLAGS
+  nmake build_libs
+
+curl 8.11.1       -> libcurl.x64.lib
+  sha256(curl-8.11.1.tar.gz) = a889ac9dbba3644271bd9d1302b5c22a088893719b72be3487bc3d401e5c4e80
+  cd winbuild
+  nmake /f Makefile.vc mode=static VC=14 MACHINE=x64 RTLIBCFG=static DEBUG=no
+        GEN_PDB=no ENABLE_IDN=no ENABLE_UNICODE=no WITH_SSL=static
+        SSL_PATH=<openssl> WITH_ZLIB=static ZLIB_PATH=<zlib>
+  (SSL_PATH/ZLIB_PATH need include\ + lib\ with libssl.lib/libcrypto.lib, zlib_a.lib)
+
+pthreads-w32 2.9.1 -> pthreads/x64/pthreadVC2.lib (static)
+  sha256(pthreads-w32-2-9-1-release.tar.gz) = e6aca7aea8de33d9c8580bcb3a0ea3ec0a7ace4ba3f4e263ac7c7b66bc95fb4d
+  use pthreads/pthread.h from this tree; in config.h replace
+  "#undef HAVE_STRUCT_TIMESPEC" by "#define HAVE_STRUCT_TIMESPEC 1" (ucrt has it)
+  rc.exe on PATH (Windows Kits\8.1\bin\x64)
+  set XCFLAGS=/W3 /MT /nologo && nmake /E clean VC-static
+
+Headers under curl-for-windows/{curl/include,openssl,zlib} come from the same
+builds (openssl/opensslconf.h is the generated one).
+
+nvapi/amd64/nvapi64.lib is NVIDIA's NVAPI SDK library, used unchanged.

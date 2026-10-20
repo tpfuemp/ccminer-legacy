@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Settings and sources shared by ccminer-cuda8.vcxproj and
+  ccminer-cuda10.vcxproj. Keep the source lists in sync with Makefile.am and
+  algos/*/algo.mk.
+  AlgoDefines: WITH_* switches of ported algos that core code depends on.
+-->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AlgoDefines></AlgoDefines>
+    <CommonDefines>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;USE_WRAPNVML;$(AlgoDefines)</CommonDefines>
+    <CommonIncludes>.;core;cuda;compat;compat\curl-for-windows\curl\include;compat\jansson;compat\getopt;compat\pthreads;compat\curl-for-windows\openssl;compat\curl-for-windows\zlib;compat\nvapi</CommonIncludes>
+    <CommonLibs>cudart_static.lib;kernel32.lib;user32.lib;advapi32.lib;shell32.lib;ws2_32.lib;wldap32.lib;winmm.lib;crypt32.lib;pthreadVC2.lib;libcurl.x64.lib;libssl.x64.lib;libcrypto.x64.lib;zlib.x64.lib;nvapi64.lib</CommonLibs>
+    <CommonLibDirs>compat\pthreads\x64;compat\curl-for-windows\out\x64\Release\lib;compat\nvapi\amd64</CommonLibDirs>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>$(CommonIncludes);$(CudaToolkitIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>$(CommonLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CommonLibDirs);$(CudaToolkitLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+    <CudaCompile>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CodeGeneration>$(CudaArchs)</CodeGeneration>
+      <Include>$(CommonIncludes)</Include>
+      <PtxAsOptionV>false</PtxAsOptionV>
+      <CInterleavedPTX>false</CInterleavedPTX>
+    </CudaCompile>
+    <CudaLink>
+      <PerformDeviceLink>false</PerformDeviceLink>
+    </CudaLink>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PreprocessorDefinitions>NDEBUG;$(CommonDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <CudaCompile>
+      <Defines>NDEBUG;$(CommonDefines)</Defines>
+      <Optimization>O3</Optimization>
+      <Runtime>MT</Runtime>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <!-- static release CRT: the bundled curl/OpenSSL/zlib/pthreads libs are /MT builds -->
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PreprocessorDefinitions>_DEBUG;$(CommonDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <CudaCompile>
+      <Defines>_DEBUG;$(CommonDefines)</Defines>
+      <GenerateLineInfo>true</GenerateLineInfo>
+      <Runtime>MT</Runtime>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <!-- host code -->
+  <ItemGroup>
+    <ClCompile Include="core\algo_registry.cpp" />
+    <ClCompile Include="core\api.cpp" />
+    <ClCompile Include="core\api_control.cpp" />
+    <ClCompile Include="core\api_http.c" />
+    <ClCompile Include="core\api_metrics.c" />
+    <ClCompile Include="core\api_model.cpp" />
+    <ClCompile Include="core\api_routes.cpp" />
+    <ClCompile Include="core\bench.cpp" />
+    <ClCompile Include="core\bignum.cpp" />
+    <ClCompile Include="core\ccminer.cpp" />
+    <ClCompile Include="core\crc32.c" />
+    <ClCompile Include="core\cuda.cpp" />
+    <ClCompile Include="core\hashlog.cpp" />
+    <ClCompile Include="core\nvapi.cpp" />
+    <ClCompile Include="core\nvml.cpp" />
+    <ClCompile Include="core\nvsettings.cpp" />
+    <ClCompile Include="core\pools.cpp" />
+    <ClCompile Include="core\sha256.c" />
+    <ClCompile Include="core\stats.cpp" />
+    <ClCompile Include="core\sysinfos.cpp" />
+    <ClCompile Include="core\util.cpp" />
+    <ClInclude Include="core\algo_registry.h" />
+    <ClInclude Include="core\algos.h" />
+    <ClInclude Include="core\api_control.h" />
+    <ClInclude Include="core\api_http.h" />
+    <ClInclude Include="core\api_metrics.h" />
+    <ClInclude Include="core\api_model.h" />
+    <ClInclude Include="core\api_routes.h" />
+    <ClInclude Include="core\bignum.hpp" />
+    <ClInclude Include="core\compat.h" />
+    <ClInclude Include="core\elist.h" />
+    <ClInclude Include="core\miner.h" />
+    <ClInclude Include="core\nvml.h" />
+    <ClInclude Include="core\serialize.hpp" />
+    <ClInclude Include="core\uint256.h" />
+  </ItemGroup>
+  <!-- portability layer and bundled jansson -->
+  <ItemGroup>
+    <ClCompile Include="compat\getopt\getopt_long.c" />
+    <ClCompile Include="compat\gettimeofday.c" />
+    <ClCompile Include="compat\winansi.c" />
+    <ClCompile Include="compat\jansson\dump.c" />
+    <ClCompile Include="compat\jansson\error.c" />
+    <ClCompile Include="compat\jansson\hashtable.c" />
+    <ClCompile Include="compat\jansson\load.c" />
+    <ClCompile Include="compat\jansson\memory.c" />
+    <ClCompile Include="compat\jansson\pack_unpack.c" />
+    <ClCompile Include="compat\jansson\strbuffer.c" />
+    <ClCompile Include="compat\jansson\strconv.c" />
+    <ClCompile Include="compat\jansson\utf.c" />
+    <ClCompile Include="compat\jansson\value.c" />
+  </ItemGroup>
+  <!--
+    algos: one ItemGroup per algo folder, mirroring algos/<name>/algo.mk.
+    Link the objects directly (never through a static lib): the linker would
+    drop the unreferenced ALGO_REGISTER objects and the algo would be missing.
+  -->
+  <ItemGroup>
+    <ClInclude Include="cuda\cuda_helper.h" />
+    <None Include="cuda\selftest_gate.cuh" />
+    <None Include="cuda\sha256_device.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\common\cuda_checkhash.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\sha256d\cuda_sha256_selftest.cu" />
+    <CudaCompile Include="algos\sha256d\cuda_sha256d.cu" />
+    <CudaCompile Include="algos\sha256d\sha256d.cu" />
+    <ClCompile Include="algos\sha256d\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\ccminer.ico" />
+    <ResourceCompile Include="res\ccminer.rc" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+# Files read by the Linux build must keep LF, also in a Windows checkout
+*.sh		text eol=lf
+*.am		text eol=lf
+*.mk		text eol=lf
+*.ac		text eol=lf
+*.in		text eol=lf
+Dockerfile	text eol=lf
