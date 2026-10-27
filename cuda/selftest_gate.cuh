@@ -1,28 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
- * Fail-closed gate for the init-time device self-tests.
- *
- * A KAT mismatch refuses to start: a GPU that cannot reproduce the consensus
- * hash produces nothing but local rejects, silently, for the whole session.
- *
- * A self-test that could not be *run* -- a cudaMalloc/cudaMemcpy that failed for
- * resource reasons -- has not shown a wrong answer, so it only warns; an
- * init-time resource blip must not kill a mining rig. The *_selftest_run()
- * helpers return false for exactly that case and route it through
- * selftest_cuda_fault().
- *
- * Usage in a self-test TU:
- *     static bool foo_selftest_run(...) {
- *         if (cudaMalloc(...) != cudaSuccess) return selftest_cuda_fault();
- *         ...
- *         return ok ? true : selftest_cuda_fault();
- *     }
- *     bool foo_device_selftest(int thr_id) {
- *         ...
- *         passed = kat_ok && gpu_ok && neg_ok;
- *         if (!passed) gpulog(LOG_ERR, thr_id, "foo self-test FAILED (...)", ...);
- *         return selftest_gate(thr_id, "foo", passed);
- *     }
+ * Fail-closed gate for init-time device self-tests: a wrong hash exits, a
+ * test that could not run (CUDA resource error, flagged with
+ * selftest_cuda_fault()) only warns. End the self-test with
+ * `return selftest_gate(thr_id, "name", passed);`.
  */
 
 #ifndef CUDA_SELFTEST_GATE_CUH
@@ -30,9 +11,7 @@
 
 #include <miner.h> // gpulog, proper_exit, EXIT_CODE_SW_INIT_ERROR
 
-/* Per-TU: each self-test TU owns its own flag, and selftest_gate() clears it,
- * so a resource fault in one primitive cannot mask a real mismatch in the
- * next one. */
+/* one flag per translation unit, cleared by selftest_gate() */
 static bool s_selftest_cuda_fault = false;
 
 /* Record "could not run" and return the false the caller wants to propagate. */
@@ -42,8 +21,7 @@ static inline bool selftest_cuda_fault(void)
 	return false;
 }
 
-/* Returns `passed` so it can wrap an existing `return passed;`. Does not
- * return at all when the verdict is a genuine mismatch. */
+/* returns `passed`; exits on a genuine mismatch */
 static inline bool selftest_gate(int thr_id, const char *name, bool passed)
 {
 	const bool could_not_run = s_selftest_cuda_fault;

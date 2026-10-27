@@ -14,6 +14,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "cuda_compat.h"
+
 #ifndef UINT32_MAX
 /* slackware need that */
 #define UINT32_MAX UINT_MAX
@@ -68,30 +70,6 @@ extern const uint3 threadIdx;
 #define SPH_T64(x) (x)
 // #define SPH_T64(x) ((x) & SPH_C64(0xFFFFFFFFFFFFFFFF))
 #endif
-
-static __device__ __forceinline__ int SHFL(int var, int src, int width = 32)
-{
-#if defined __CUDA_ARCH__ && __CUDA_ARCH__ >= 300
-#if CUDART_VERSION >= 9010
-	return __shfl_sync(0xffffffff, var, src, width);
-#else
-	return __shfl(var, src, width);
-#endif
-#else
-#endif
-}
-
-static __device__ __forceinline__ int SHFL_UP(int var, int src, int width = 32)
-{
-#if defined __CUDA_ARCH__ && __CUDA_ARCH__ >= 300
-#if CUDART_VERSION >= 9010
-	return __shfl_up_sync(0xffffffff, var, src, width);
-#else
-	return __shfl_up(var, src, width);
-#endif
-#else
-#endif
-}
 
 #if __CUDA_ARCH__ < 320
 // Host and Compute 3.0
@@ -762,15 +740,5 @@ uint32_t andor32(uint32_t a, uint32_t b, uint32_t c) {
 #endif
 	return result;
 }
-
-// CUDA 9+ deprecated functions warnings (new mask param)
-#if CUDA_VERSION >= 9000 && __CUDA_ARCH__ >= 300
-#undef __shfl
-#define __shfl(var, srcLane, width)  __shfl_sync(0xFFFFFFFFu, var, srcLane, width)
-#undef __shfl_up
-#define __shfl_up(var, delta, width) __shfl_up_sync(0xFFFFFFFF, var, delta, width)
-#undef __any
-#define __any(p) __any_sync(0xFFFFFFFFu, p)
-#endif
 
 #endif // #ifndef CUDA_HELPER_H

@@ -33,6 +33,29 @@ void algo_register(const struct algo_desc *desc)
 	registry[desc->id] = desc;
 }
 
+static struct {
+	const struct algo_test_vector *v;
+	int count;
+} tests[ALGO_COUNT];
+
+void algo_register_tests(int id, const struct algo_test_vector *v, int count)
+{
+	if (id < 0 || id >= ALGO_COUNT || !v || count <= 0 || tests[id].v) {
+		fprintf(stderr, "algo_register_tests: invalid entry for id %d\n", id);
+		abort();
+	}
+	tests[id].v = v;
+	tests[id].count = count;
+}
+
+int algo_find_tests(int id, const struct algo_test_vector **v)
+{
+	if (id < 0 || id >= ALGO_COUNT || !tests[id].v)
+		return 0;
+	*v = tests[id].v;
+	return tests[id].count;
+}
+
 const struct algo_desc *algo_find(int id)
 {
 	if (id < 0 || id >= ALGO_COUNT)

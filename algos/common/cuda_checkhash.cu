@@ -10,10 +10,7 @@
 
 __constant__ uint32_t pTarget[8]; // 32 bytes
 
-// store MAX_GPUS device arrays of 8 nonces
-//
-// Slot 0 is the candidate count, slots 1..CHECKHASH_SLOTS-1 hold the nonces,
-// so at most 7 are retained per batch.
+// per GPU: slot 0 = candidate count, slots 1..CHECKHASH_SLOTS-1 = nonces
 #define CHECKHASH_SLOTS   8
 #define CHECKHASH_NONCES  (CHECKHASH_SLOTS - 1)
 #define CHECKHASH_BYTES   (CHECKHASH_SLOTS * sizeof(uint32_t))
@@ -100,9 +97,7 @@ void cuda_checkhash_64(uint32_t threads, uint32_t startNounce, uint32_t *hash, u
 		// todo: use only 32 bytes * threads if possible
 		uint32_t *inpHash = &hash[thread << 4];
 
-		// atomicMin, so slot 0 is the lowest candidate in the batch (the caller
-		// resumes from max(nonce0, nonce1) + 1). The 0xffffffff init of the
-		// host wrapper is atomicMin's identity.
+		// atomicMin: lowest candidate of the batch (host inits 0xffffffff)
 		if (hashbelowtarget(inpHash, pTarget))
 			atomicMin(&resNonces[0], (startNounce + thread));
 	}
@@ -213,9 +208,7 @@ static uint32_t checkhash_suppl_collect(int thr_id, uint32_t threads, uint32_t s
 		return 0;
 	}
 
-	// Arm every slot the readback copies, not just the count: the kernel writes
-	// only as many slots as it finds candidates, so the rest would be read back
-	// uninitialised. Slots get the UINT32_MAX sentinel, the count starts at 0.
+	// count 0, every nonce slot UINT32_MAX (all slots are read back)
 	cudaMemset(d_resNonces[thr_id], 0xff, CHECKHASH_BYTES);
 	cudaMemset(d_resNonces[thr_id], 0, sizeof(uint32_t));
 
@@ -225,14 +218,8 @@ static uint32_t checkhash_suppl_collect(int thr_id, uint32_t threads, uint32_t s
 	cudaMemcpy(h_resNonces[thr_id], d_resNonces[thr_id], CHECKHASH_BYTES, cudaMemcpyDeviceToHost);
 	const uint32_t rescnt = h_resNonces[thr_id][0];
 
-	/* The kernel stores candidates in discovery order. Sorting makes index k
-	 * the k-th lowest, so index 0 agrees with cuda_check_hash()'s atomicMin
-	 * and index 1 is the next different candidate.
-	 *
-	 * Only the retained slots can be sorted. With more than CHECKHASH_NONCES
-	 * candidates in one batch the kernel has already dropped some, so this is
-	 * the k-th lowest of those KEPT; callers read the total to see that case
-	 * and resume conservatively rather than skipping the remainder. */
+	/* sorted ascending like cuda_check_hash(); with more candidates than
+	 * CHECKHASH_NONCES only the kept ones (callers check the total) */
 	uint32_t stored = rescnt;
 	if (stored > CHECKHASH_NONCES)
 		stored = CHECKHASH_NONCES;
@@ -266,15 +253,9 @@ uint32_t cuda_check_hash_suppl(int thr_id, uint32_t threads, uint32_t startNounc
 	return (numNonce < stored) ? sorted[numNonce] : UINT32_MAX;
 }
 
-/* Every candidate of the batch in one launch: writes up to max_out nonces to
- * out[] in ascending order and returns how many it wrote. *total, if given,
- * receives how many the batch FOUND -- larger than the written count when the
- * device dropped candidates past CHECKHASH_NONCES, which tells the caller it
- * must not skip the rest of the window.
- *
- * Prefer this over looping cuda_check_hash_suppl(): cuda_check_hash_count()
- * means a COUNT only after a suppl call, but the lowest NONCE after
- * cuda_check_hash(), so the loop form is easy to mis-order. */
+/* All candidates of the batch, ascending, up to max_out; returns how many
+ * were written. *total (optional) gets how many were found: if larger, the
+ * device dropped some and the caller must not skip the rest of the range. */
 __host__
 uint32_t cuda_check_hash_suppl_all(int thr_id, uint32_t threads, uint32_t startNounce,
 	uint32_t *d_inputHash, uint32_t *out, uint32_t max_out, uint32_t *total)

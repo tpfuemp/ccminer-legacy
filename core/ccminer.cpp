@@ -117,6 +117,7 @@ bool use_syslog = false;
 bool use_colors = true;
 int use_pok = 0;
 static bool opt_background = false;
+static bool opt_test_vectors = false;
 bool opt_quiet = false;
 int opt_maxlograte = 3;
 static int opt_retries = -1;
@@ -290,134 +291,10 @@ uint32_t yescrypt_param_p = 0;
 static char const usage[] = "\
 Usage: " PROGRAM_NAME " [OPTIONS]\n\
 Options:\n\
-  -a, --algo=ALGO       specify the hash algorithm to use\n\
-			0x10		ChainOX\n\
-			allium		Garlicoin (Lyra2 chain)\n\
-			anime		Animecoin\n\
-			argon2d500	Dynamic (DYN)\n\
-			argon2d1000	Zero Dynamics Cash\n\
-			argon2d4096	Argentum / Myriad (XMY)\n\
-			argon2d16000	Alterdot\n\
-			argon2id1024	Bitweb (BTW)\n\
-			balloon		Balloon hash\n\
-			bastion		Hefty bastion\n\
-			bitcore		Timetravel-10\n\
-			blake		Blake 256 (SFR)\n\
-			blake2b		Blake2-B 512 (BCX)\n\
-			blake2s		Blake2-S 256 (NEVA)\n\
-			blakecoin	Fast Blake 256 (8 rounds)\n\
-			bmw		BMW 256\n\
-			bmw512		BMW 512\n\
-			c11/flax	X11 variant\n\
-			cryptolight	AEON cryptonight (MEM/2)\n\
-			cryptonight	XMR cryptonight\n\
-			curvehash	CurvehashCoin\n\
-			decred		Decred BLAKE3\n\
-			deep		Deepcoin\n\
-			dmd-gr		Diamond-Groestl\n\
-			equihash	Equihash 200/9 (Zcash)\n\
-			equihash144	Equihash 144/5\n\
-			equihash192	Equihash 192/7\n\
-			evohash		EvoAI\n\
-			evrprogpow	EvrProgPow (Evrmore)\n\
-			firopow		FiroPoW (Firo, StakeCube)\n\
-			flex		Flex (Kylacoin, Lyncoin)\n\
-			fresh		Freshcoin (shavite 80)\n\
-			fugue256	Fuguecoin\n\
-			ghostrider	GhostRider (Raptoreum)\n\
-			gostcoin	Double GOST R 34.11\n\
-			groestl		Groestlcoin\n"
-#ifdef WITH_HEAVY_ALGO
-"			heavy		Heavycoin\n"
-#endif
-"			heavyhash	oBTC coin\n\
-			hmq1725		Doubloons / Espers\n\
-			hoohash		HoohashV110 (PEPEPOW)\n\
-			hsr		Hshare / HSR (X13 SM3)\n\
-			jackpot		JHA v8\n\
-			jha		JHA (Jackpothash)\n\
-			kawpow		KawPoW (Ravencoin)\n\
-			keccak		Deprecated Keccak-256\n\
-			keccakc		Keccak-256 (CreativeCoin)\n\
-			lbry		LBRY Credits (Sha/Ripemd)\n\
-			luffa		Joincoin\n\
-			lyra2		CryptoCoin\n\
-			lyra2re		Lyra2RE\n\
-			lyra2v2		VertCoin\n\
-			lyra2z		ZeroCoin (3rd impl)\n\
-			lyra2z330	Lyra2Z330\n\
-			meowpow		MeowPow (Meowcoin)\n\
-			meraki		Meraki (Telestai)\n\
-			mike		Mike (VKAX, FortuneBlock)\n"
-#ifdef WITH_HEAVY_ALGO
-"			mjollnir	Mjollnircoin (Hefty)\n"
-#endif
-"			minotaurx	MinotaurX (Avian, Pulsar)\n\
-			myr-gr		Myriad-Groestl\n\
-			neoscrypt	FeatherCoin, Phoenix, UFO...\n\
-			xaya/neoscrypt-xaya	XAYA's version...\n\
-			nist5		NIST5 (TalkCoin)\n\
-			odo		Odocrypt (DigiByte)\n\
-			penta		Pentablake hash (5x Blake 512)\n\
-			phi		BHCoin\n\
-			polytimos	Politimos\n\
-			power2b		yespower 1.0-b2b (MicroBitcoin)\n\
-			quark		Quark\n\
-			qubit		Qubit\n\
-			rinhash		RinHash (Blake3+Argon2d+SHA3-256)\n\
-			s3		S3 (1Coin)\n\
-			scrypt		Scrypt\n\
-			scrypt-jane	Scrypt-jane Chacha\n\
-			sha3d		Bsha3, Yilacoin and Kylacoin\n\
-			sha3t		Fjarcode and Bitcoin III\n\
-			sha256csm	SHA256csm (galleoncoin)\n\
-			sha256d		SHA256d (bitcoin)\n\
-			sha256dv	SHA256d Veil\n\
-			sha256t		SHA256 x3\n\
-			sha512256d	Double SHA512/256 (Radiant)\n\
-			sia		SIA (Blake2B)\n\
-			sib		Sibcoin (X11+Streebog)\n\
-			skein		Skein SHA2 (Skeincoin)\n\
-			skein2		Double Skein (Woodcoin)\n\
-			skunk		Skein Cube Fugue Streebog\n\
-			skydoge		SkyDoge\n\
-			soterg		Soteria (X12R)\n\
-			timetravel	Machinecoin permuted x8\n\
-			tribus		Denarius\n\
-			vanilla		Blake256-8 (VNL)\n\
-			veltor		Thorsriddle streebog\n\
-			verthash	Verthash (Vertcoin)\n\
-			whirlcoin	Old Whirlcoin (Whirlpool algo)\n\
-			whirlpool	Whirlpool algo\n\
-			whirlpoolx	WhirlpoolX\n\
-			whirlpoolx2	WhirlpoolX2 (CapStash)\n\
-			wildkeccak	Boolberry\n\
-			x11		X11 (DarkCoin)\n\
-			x11evo		Permuted x11 (Revolver)\n\
-			x13		X13 (MaruCoin)\n\
-			x14		X14\n\
-			x15		X15\n\
-			x16r		X16R\n\
-			x16rt		X16RT\n\
-			x16rv2		X16R V2\n\
-			x16s		X16S\n\
-			x17		X17\n\
-			x21s		X21S\n\
-			x25x		X25X (SUQA/SIN)\n\
-			yescrypt	Globlboost-Y (BSTY) or any params\n\
-			yescryptr8	BitZeny (ZNY)\n\
-			yescryptr16	Yenten (YTN)\n\
-			yescryptr16v2	PPTP\n\
-			yescryptr24	JagariCoinR\n\
-			yescryptr32	WAVI\n\
-			yespower	yespower 1.0, params via --yespower-param/-key\n\
-			yespowereqpay	EqPay (EQPAY), 181-byte header\n\
-			yespowerr16	yespower 1.0 N=4096 r=16 (Yenten)\n\
-			 coin aliases	yespowerSUGAR yespowerURX yespowerLTNCG yespowerMGPC\n\
-					yespowerIC yespowerIOTS yespowerLITB yespowerLTNCG\n\
-					yespowerMGPC yespowerSUGAR yespowerTIDE yespowerURX\n\
-					yespowerSMT\n\
-			zr5		ZR5 (ZiftrCoin)\n\
+  -a, --algo=ALGO       specify the hash algorithm to use, one of:\n";
+
+/* the algo list between the two parts comes from the registry */
+static char const usage_options[] = "\
   -d, --devices         Comma separated list of CUDA devices to use.\n\
                         Device IDs start counting from 0! Alternatively takes\n\
                         string names of your cards like gtx780ti or gt640#2\n\
@@ -506,6 +383,7 @@ Options:\n\
   -B, --background      run the miner in the background\n\
       --benchmark       run in offline benchmark mode\n\
       --cputest         debug hashes from cpu algorithms\n\
+      --test-vectors    check the algos against known hashes on CPU and GPU, then exit\n\
   -c, --config=FILE     load a JSON-format configuration file\n\
   -V, --version         display version information and exit\n\
   -h, --help            display this help text and exit\n\
@@ -540,6 +418,7 @@ struct option options[] = {
 	{ "cert", 1, NULL, 1001 },
 	{ "config", 1, NULL, 'c' },
 	{ "cputest", 0, NULL, 1006 },
+	{ "test-vectors", 0, NULL, 1218 },
 	{ "cpu-affinity", 1, NULL, 1020 },
 	{ "cpu-priority", 1, NULL, 1021 },
 	{ "cuda-schedule", 1, NULL, 1025 },
@@ -3007,6 +2886,8 @@ static void *miner_thread(void *userdata)
 				if (loopcnt > 2) // ignore first (init time)
 					stats_remember_speed(thr_id, hashes_done, thr_hashrates[thr_id], (uint8_t) rc, work.height);
 				pthread_mutex_unlock(&stats_lock);
+				if (loopcnt > 2)
+					cuda_check_launch_time(thr_id, hashes_done / dtime);
 			}
 		}
 
@@ -3548,12 +3429,32 @@ static void show_version_and_exit(void)
 	proper_exit(EXIT_CODE_OK);
 }
 
+/* the algos compiled into this build, sorted by name */
+static void show_algos(void)
+{
+	int ids[ALGO_COUNT], n = 0;
+	for (int i = 0; i < ALGO_COUNT; i++)
+		if (algo_find(i))
+			ids[n++] = i;
+	for (int i = 1; i < n; i++)
+		for (int j = i; j > 0 && strcmp(algo_names[ids[j - 1]], algo_names[ids[j]]) > 0; j--) {
+			int t = ids[j]; ids[j] = ids[j - 1]; ids[j - 1] = t;
+		}
+	for (int i = 0; i < n; i++) {
+		const char *name = algo_names[ids[i]];
+		printf("\t\t\t%s\t%s%s\n", name, strlen(name) < 8 ? "\t" : "", algo_find(ids[i])->help);
+	}
+}
+
 static void show_usage_and_exit(int status)
 {
 	if (status)
 		fprintf(stderr, "Try `" PROGRAM_NAME " --help' for more information.\n");
-	else
+	else {
 		printf(usage);
+		show_algos();
+		printf(usage_options);
+	}
 
 	if (opt_algo == ALGO_SCRYPT || opt_algo == ALGO_SCRYPT_JANE) {
 		printf(scrypt_usage);
@@ -4131,6 +4032,10 @@ void parse_arg(int key, char *arg)
 		print_hash_tests();
 		proper_exit(EXIT_CODE_OK);
 		break;
+	case 1218:
+		// needs the devices, runs from main()
+		opt_test_vectors = true;
+		break;
 	case 1003:
 		want_longpoll = false;
 		break;
@@ -4583,7 +4488,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (!strlen(rpc_url)) {
-		if (!opt_benchmark) {
+		if (!opt_benchmark && !opt_test_vectors) {
 			fprintf(stderr, "%s: no URL supplied\n", argv[0]);
 			show_usage_and_exit(1);
 		}
@@ -4729,6 +4634,16 @@ int main(int argc, char *argv[])
 	thr_info = (struct thr_info *)calloc(opt_n_threads + 5, sizeof(*thr));
 	if (!thr_info)
 		return EXIT_CODE_SW_INIT_ERROR;
+
+	if (opt_test_vectors) {
+		for (i = 0; i < opt_n_threads; i++) {
+			thr_info[i].id = i;
+			thr_info[i].gpu.thr_id = i;
+			thr_info[i].gpu.gpu_id = (uint8_t) device_map[i];
+			thr_info[i].gpu.gpu_arch = (uint16_t) device_sm[device_map[i]];
+		}
+		proper_exit(run_test_vectors());
+	}
 
 	/* longpoll thread */
 	longpoll_thr_id = opt_n_threads + 1;

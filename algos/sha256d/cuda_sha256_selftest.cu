@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
- * Unit self-test for cuda/sha256_device.cuh:
- * exercises each header building block against the OpenSSL CPU reference and
- * a known-answer vector (a real Bitcoin mainnet block header, so the expected
- * digest is anchored outside this codebase). Runs once per process at algo
- * init and is FAIL-CLOSED via cuda/selftest_gate.cuh.
+ * Self-test of cuda/sha256_device.cuh against OpenSSL and a Bitcoin block
+ * header, once at algo init, fail-closed (cuda/selftest_gate.cuh).
  */
 
 #include <string.h>
@@ -30,16 +27,12 @@ static const uint32_t kat_digest_be[8] = {
 	0xdb311c43, 0xb8e90000, 0x00000000, 0x00000000
 };
 
-/* Device buffer layout: in[0..19] header words, in[20..27] round-3 prehash
- * state, in[28..31] preextend words; out[0..7] full second-hash state,
- * out[8..9] truncated words 6/7, out[10..17] first hash via the prehash
- * path (must equal the full-transform first hash). */
+/* in: header[0..19], prehash[20..27], preextend[28..31]; out: hash[0..7],
+ * truncated words 6/7 [8..9], first hash via prehash [10..17] */
 #define SELFTEST_IN_WORDS  32
 #define SELFTEST_OUT_WORDS 18
 
-/* GPU side: double SHA-256 of an 80-byte header (20 big-endian words) via
- * sha256_transform_full, sha256_final_to_target over the second hash, and
- * the block-2 transform again via sha256_transform_80_from_pre4. */
+/* sha256d of the header via the full, truncated and prehash transforms */
 __global__ __launch_bounds__(1, 1)
 void sha256_selftest_gpu(const uint32_t *in32, uint32_t *out)
 {
@@ -103,9 +96,7 @@ void sha256_selftest_gpu(const uint32_t *in32, uint32_t *out)
 	out[9] = st2[7];
 }
 
-/* Run one 80-byte vector through OpenSSL, the host header path and the GPU
- * kernel; expected_be (optional) additionally pins the digest to a known
- * answer. Returns true when all agree. */
+/* OpenSSL, host and GPU must agree, and match expected_be if given */
 static bool sha256_selftest_vector(const uint8_t m[80], const uint32_t *expected_be)
 {
 	// CPU reference: OpenSSL double SHA-256
@@ -155,9 +146,7 @@ static bool sha256_selftest_vector(const uint8_t m[80], const uint32_t *expected
 		sha256_preextend_w3_host(w, inbuf + 28);
 	}
 
-	// device path: full transform must match the host, truncated words 6/7
-	// must match the full transform, prehash-path first hash must match the
-	// full-transform first hash
+	// device: full = host, truncated = full words 6/7, prehash = full first hash
 	uint32_t out[SELFTEST_OUT_WORDS] = { 0 };
 	uint32_t *d_buf = NULL;
 	bool gpu_ok = false;

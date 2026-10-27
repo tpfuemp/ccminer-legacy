@@ -115,7 +115,11 @@ nvml_handle * nvml_create()
 		nvml_dll = wrap_dlopen("nvml.dll");
 		if (nvml_dll == NULL)
 #endif
-		return NULL;
+		{
+			if (opt_debug)
+				applog(LOG_DEBUG, "NVML library not found, NVML monitoring disabled");
+			return NULL;
+		}
 	}
 
 	nvmlh = (nvml_handle *) calloc(1, sizeof(nvml_handle));
@@ -225,16 +229,26 @@ nvml_handle * nvml_create()
 		return NULL;
 	}
 
-	nvmlh->nvmlInit();
+	/* fails on some limited drivers: run without NVML */
+	nvmlReturn_t rc = nvmlh->nvmlInit();
+	if (rc != NVML_SUCCESS) {
+		if (opt_debug)
+			applog(LOG_DEBUG, "nvmlInit: %s, NVML monitoring disabled", nvmlh->nvmlErrorString(rc));
+		wrap_dlclose(nvmlh->nvml_dll);
+		free(nvmlh);
+		return NULL;
+	}
 	if (nvmlh->nvmlSystemGetDriverVersion)
 		nvmlh->nvmlSystemGetDriverVersion(driver_version, sizeof(driver_version));
-	nvmlh->nvmlDeviceGetCount(&nvmlh->nvml_gpucount);
+	rc = nvmlh->nvmlDeviceGetCount(&nvmlh->nvml_gpucount);
 
 	/* Query CUDA device count, in case it doesn't agree with NVML, since  */
 	/* CUDA will only report GPUs with compute capability greater than 1.0 */
-	if (cudaGetDeviceCount(&nvmlh->cuda_gpucount) != cudaSuccess) {
+	if (rc != NVML_SUCCESS || nvmlh->nvml_gpucount <= 0 ||
+	    cudaGetDeviceCount(&nvmlh->cuda_gpucount) != cudaSuccess) {
 		if (opt_debug)
-			applog(LOG_DEBUG, "Failed to query CUDA device count!");
+			applog(LOG_DEBUG, "Failed to query the NVML or CUDA device count!");
+		nvmlh->nvmlShutdown();
 		wrap_dlclose(nvmlh->nvml_dll);
 		free(nvmlh);
 		return NULL;
@@ -252,7 +266,8 @@ nvml_handle * nvml_create()
 
 	/* Obtain GPU device handles we're going to need repeatedly... */
 	for (i=0; i<nvmlh->nvml_gpucount; i++) {
-		nvmlh->nvmlDeviceGetHandleByIndex(i, &nvmlh->devs[i]);
+		if (nvmlh->nvmlDeviceGetHandleByIndex(i, &nvmlh->devs[i]) != NVML_SUCCESS)
+			nvmlh->devs[i] = NULL;
 	}
 
 	/* Query PCI info for each NVML device, and build table for mapping of */
@@ -260,14 +275,21 @@ nvml_handle * nvml_create()
 	for (i=0; i<nvmlh->nvml_gpucount; i++) {
 		nvmlPciInfo_t pciinfo;
 
-		nvmlh->nvmlDeviceGetPciInfo(nvmlh->devs[i], &pciinfo);
+		nvmlh->app_clocks[i] = NVML_FEATURE_UNKNOWN;
+		if (!nvmlh->devs[i] || nvmlh->nvmlDeviceGetPciInfo(nvmlh->devs[i], &pciinfo) != NVML_SUCCESS) {
+			/* unusable: invalid bus ids never match a CUDA device */
+			memset(&pciinfo, 0, sizeof(pciinfo));
+			pciinfo.domain = pciinfo.bus = pciinfo.device = 0xffffffffU;
+			nvmlh->devs[i] = NULL;
+		}
 		nvmlh->nvml_pci_domain_id[i] = pciinfo.domain;
 		nvmlh->nvml_pci_bus_id[i]    = pciinfo.bus;
 		nvmlh->nvml_pci_device_id[i] = pciinfo.device;
 		nvmlh->nvml_pci_vendor_id[i] = pciinfo.pci_device_id;
 		nvmlh->nvml_pci_subsys_id[i] = pciinfo.pci_subsystem_id;
+		if (!nvmlh->devs[i])
+			continue;
 
-		nvmlh->app_clocks[i] = NVML_FEATURE_UNKNOWN;
 		if (nvmlh->nvmlDeviceSetAPIRestriction) {
 			nvmlh->nvmlDeviceSetAPIRestriction(nvmlh->devs[i], NVML_RESTRICTED_API_SET_APPLICATION_CLOCKS,
 				NVML_FEATURE_ENABLED);
@@ -306,6 +328,13 @@ nvml_handle * nvml_create()
 	return nvmlh;
 }
 
+/* optional, older drivers lack some */
+static bool nvml_has_app_clocks_api(nvml_handle *nvmlh)
+{
+	return nvmlh->nvmlDeviceGetDefaultApplicationsClock && nvmlh->nvmlDeviceGetSupportedMemoryClocks &&
+		nvmlh->nvmlDeviceGetSupportedGraphicsClocks && nvmlh->nvmlDeviceSetApplicationsClocks;
+}
+
 /* apply config clocks to an used device */
 int nvml_set_clocks(nvml_handle *nvmlh, int dev_id)
 {
@@ -320,16 +349,21 @@ int nvml_set_clocks(nvml_handle *nvmlh, int dev_id)
 	if (!device_gpu_clocks[dev_id] && !device_mem_clocks[dev_id])
 		return 0; // nothing to do
 
+	if (!nvml_has_app_clocks_api(nvmlh)) {
+		applog(LOG_WARNING, "GPU #%d: NVML application clocks are not supported by this driver", dev_id);
+		return -ENOSYS;
+	}
+
 	if (nvmlh->app_clocks[n] != NVML_FEATURE_ENABLED) {
 		applog(LOG_WARNING, "GPU #%d: NVML application clock feature is not allowed!", dev_id);
 		return -EPERM;
 	}
 
 	uint32_t mem_prev = clock_prev_mem[dev_id];
-	if (!mem_prev)
+	if (!mem_prev && nvmlh->nvmlDeviceGetApplicationsClock)
 		nvmlh->nvmlDeviceGetApplicationsClock(nvmlh->devs[n], NVML_CLOCK_MEM, &mem_prev);
 	uint32_t gpu_prev = clock_prev[dev_id];
-	if (!gpu_prev)
+	if (!gpu_prev && nvmlh->nvmlDeviceGetApplicationsClock)
 		nvmlh->nvmlDeviceGetApplicationsClock(nvmlh->devs[n], NVML_CLOCK_GRAPHICS, &gpu_prev);
 
 	nvmlh->nvmlDeviceGetDefaultApplicationsClock(nvmlh->devs[n], NVML_CLOCK_MEM, &mem_clk);
@@ -405,7 +439,9 @@ int nvml_reset_clocks(nvml_handle *nvmlh, int dev_id)
 		return -ENODEV;
 
 	if (clock_prev[dev_id]) {
-		rc = nvmlh->nvmlDeviceResetApplicationsClocks(nvmlh->devs[n]);
+		rc = NVML_ERROR_NOT_SUPPORTED;
+		if (nvmlh->nvmlDeviceResetApplicationsClocks)
+			rc = nvmlh->nvmlDeviceResetApplicationsClocks(nvmlh->devs[n]);
 		if (rc != NVML_SUCCESS) {
 			applog(LOG_WARNING, "GPU #%d: unable to reset application clocks", dev_id);
 		}
@@ -415,12 +451,13 @@ int nvml_reset_clocks(nvml_handle *nvmlh, int dev_id)
 
 	if (limit_prev[dev_id]) {
 		uint32_t plimit = limit_prev[dev_id];
+		rc = NVML_ERROR_NOT_SUPPORTED;
 		if (nvmlh->nvmlDeviceGetPowerManagementDefaultLimit && !plimit) {
 			rc = nvmlh->nvmlDeviceGetPowerManagementDefaultLimit(nvmlh->devs[n], &plimit);
 		} else if (plimit) {
 			rc = NVML_SUCCESS;
 		}
-		if (rc == NVML_SUCCESS)
+		if (rc == NVML_SUCCESS && nvmlh->nvmlDeviceSetPowerManagementLimit)
 			nvmlh->nvmlDeviceSetPowerManagementLimit(nvmlh->devs[n], plimit);
 		ret = 1;
 	}
@@ -441,6 +478,11 @@ int nvml_set_pstate(nvml_handle *nvmlh, int dev_id)
 
 	if (device_pstate[dev_id] < 0)
 		return 0;
+
+	if (!nvml_has_app_clocks_api(nvmlh)) {
+		applog(LOG_WARNING, "GPU #%d: NVML application clocks are not supported by this driver", dev_id);
+		return -ENOSYS;
+	}
 
 	if (nvmlh->app_clocks[n] != NVML_FEATURE_ENABLED) {
 		applog(LOG_WARNING, "GPU #%d: NVML app. clock feature is not allowed!", dev_id);
@@ -522,11 +564,10 @@ int nvml_set_plimit(nvml_handle *nvmlh, int dev_id)
 	if (nvmlh->nvmlDeviceGetPowerManagementLimitConstraints)
 		rc = nvmlh->nvmlDeviceGetPowerManagementLimitConstraints(nvmlh->devs[n], &pmin, &pmax);
 
-	if (rc != NVML_SUCCESS) {
-		if (!nvmlh->nvmlDeviceGetPowerManagementLimit)
-			return -ENOSYS;
-	}
-	nvmlh->nvmlDeviceGetPowerManagementLimit(nvmlh->devs[n], &prev_limit);
+	if (rc != NVML_SUCCESS && !nvmlh->nvmlDeviceGetPowerManagementLimit)
+		return -ENOSYS;
+	if (nvmlh->nvmlDeviceGetPowerManagementLimit)
+		nvmlh->nvmlDeviceGetPowerManagementLimit(nvmlh->devs[n], &prev_limit);
 	if (!pmax) pmax = prev_limit;
 
 	plimit = min(plimit, pmax);
@@ -678,6 +719,7 @@ int nvml_get_fanpcnt(nvml_handle *nvmlh, int cudaindex, unsigned int *fanpcnt)
 int nvml_get_current_clocks(int cudaindex, unsigned int *graphics_clock, unsigned int *mem_clock)
 {
 	nvmlReturn_t rc;
+	if (!hnvml) return -ENODEV;
 	int gpuindex = hnvml->cuda_nvml_device_id[cudaindex];
 	if (gpuindex < 0 || gpuindex >= hnvml->nvml_gpucount) return -ENODEV;
 	if (!hnvml->nvmlDeviceGetClockInfo) return -ENOSYS;
@@ -880,7 +922,7 @@ int nvapi_fanspeed(unsigned int devNum, unsigned int *speed)
 		NvAPI_GetErrorMessage(ret, string);
 		if (opt_debug)
 			applog(LOG_DEBUG, "NVAPI NvAPI_GPU_GetTachReading: %s", string);
-		return -1;
+		return ret == NVAPI_NOT_SUPPORTED ? -ENOSYS : -1;
 	}
 
 	(*speed) = (unsigned int) fanspeed;
@@ -1934,16 +1976,33 @@ int nvapi_devid(unsigned int devNum)
 // assume 2500 rpm as default, auto-updated if more
 static unsigned int fan_speed_max = 2500;
 
+#ifdef WIN32
+// GPUs without tachometer: ask NVAPI only once
+static bool nvapi_no_tach[MAX_GPUS];
+
+static int nvapi_fan_rpm(int dev_id, unsigned int *rpm)
+{
+	if (dev_id < 0 || dev_id >= MAX_GPUS || nvapi_no_tach[dev_id])
+		return -ENOSYS;
+	int rc = nvapi_fanspeed(nvapi_dev_map[dev_id], rpm);
+	if (rc == -ENOSYS)
+		nvapi_no_tach[dev_id] = true;
+	return rc;
+}
+#endif
+
 unsigned int gpu_fanpercent(struct cgpu_info *gpu)
 {
 	unsigned int pct = 0;
+	int support = -1;
 	if (hnvml) {
-		nvml_get_fanpcnt(hnvml, gpu->gpu_id, &pct);
+		support = nvml_get_fanpcnt(hnvml, gpu->gpu_id, &pct);
 	}
 #ifdef WIN32
-	else {
+	// also when NVML lacks the sensor
+	if (support != 0) {
 		unsigned int rpm = 0;
-		nvapi_fanspeed(nvapi_dev_map[gpu->gpu_id], &rpm);
+		nvapi_fan_rpm(gpu->gpu_id, &rpm);
 		pct = (rpm * 100) / fan_speed_max;
 		if (pct > 100) {
 			pct = 100;
@@ -1958,7 +2017,7 @@ unsigned int gpu_fanrpm(struct cgpu_info *gpu)
 {
 	unsigned int rpm = 0;
 #ifdef WIN32
-	nvapi_fanspeed(nvapi_dev_map[gpu->gpu_id], &rpm);
+	nvapi_fan_rpm(gpu->gpu_id, &rpm);
 #endif
 	return rpm;
 }
@@ -1968,12 +2027,14 @@ float gpu_temp(struct cgpu_info *gpu)
 {
 	float tc = 0.0;
 	unsigned int tmp = 0;
+	int support = -1;
 	if (hnvml) {
-		nvml_get_tempC(hnvml, gpu->gpu_id, &tmp);
+		support = nvml_get_tempC(hnvml, gpu->gpu_id, &tmp);
 		tc = (float)tmp;
 	}
 #ifdef WIN32
-	else {
+	if (support != 0) {
+		tmp = 0;
 		nvapi_temperature(nvapi_dev_map[gpu->gpu_id], &tmp);
 		tc = (float)tmp;
 	}
@@ -1989,7 +2050,8 @@ int gpu_pstate(struct cgpu_info *gpu)
 		support = nvml_get_pstate(hnvml, gpu->gpu_id, &pstate);
 	}
 #ifdef WIN32
-	if (support == -1) {
+	// also when NVML lacks the value
+	if (support != 0) {
 		unsigned int pst = 0;
 		nvapi_getpstate(nvapi_dev_map[gpu->gpu_id], &pst);
 		pstate = (int) pst;
@@ -2006,7 +2068,7 @@ int gpu_busid(struct cgpu_info *gpu)
 		support = nvml_get_busid(hnvml, gpu->gpu_id, &busid);
 	}
 #ifdef WIN32
-	if (support == -1) {
+	if (support != 0) {
 		busid = device_bus_ids[gpu->gpu_id];
 	}
 #endif
@@ -2021,7 +2083,7 @@ unsigned int gpu_power(struct cgpu_info *gpu)
 		support = nvml_get_power_usage(hnvml, gpu->gpu_id, &mw);
 	}
 #ifdef WIN32
-	if (support == -1) {
+	if (support != 0) {
 		unsigned int pct = 0;
 		nvapi_getusage(nvapi_dev_map[gpu->gpu_id], &pct);
 		pct *= nvapi_get_plimit(nvapi_dev_map[gpu->gpu_id]);
@@ -2090,7 +2152,7 @@ static int translate_vendor_id(uint16_t vid, char *vendorname)
 		}
 	}
 	if (opt_debug && vid != 0x10DE)
-		applog(LOG_DEBUG, "nvml: Unknown vendor %04x\n", vid);
+		applog(LOG_DEBUG, "nvml: Unknown vendor %04x", vid);
 	return 0;
 }
 

@@ -36,7 +36,7 @@ sed -n 's/.*<\(ClCompile\|CudaCompile\|ClInclude\|None\) Include="\([^"]*\)".*/\
 	am_sources Makefile.am ccminer_SOURCES
 	for mk in algos/*/algo.mk; do am_sources "$mk" ccminer_SOURCES; done
 } | sort -u > "$tmp/make"
-find core cuda algos -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.cu' \
+find core cuda sph algos -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.cu' \
 	-o -name '*.h' -o -name '*.hpp' -o -name '*.cuh' \) | sort -u > "$tmp/disk"
 
 comm -23 "$tmp/props" "$tmp/make" > "$tmp/x"

@@ -22,6 +22,13 @@
 // sm version each device's kernels were built for (set by the algos, 0 = unknown)
 int cuda_arch[MAX_GPUS] = { 0 };
 
+// display watchdog (TDR): a long launch resets the driver
+static bool device_watchdog[MAX_GPUS] = { 0 };
+// per thread: last throughput, TDR cap
+static uint32_t thr_throughput[MAX_GPUS] = { 0 };
+static uint32_t thr_tdr_cap[MAX_GPUS] = { 0 };
+static bool thr_tdr_warned[MAX_GPUS] = { 0 };
+
 #ifdef __cplusplus
 /* miner.h functions are declared in C type, not C++ */
 extern "C" {
@@ -78,6 +85,7 @@ void cuda_devicenames()
 
 		device_sm[dev_id] = (props.major * 100 + props.minor * 10);
 		device_mpcount[dev_id] = (short) props.multiProcessorCount;
+		device_watchdog[dev_id] = props.kernelExecTimeoutEnabled != 0;
 
 		if (device_name[dev_id]) {
 			free(device_name[dev_id]);
@@ -171,6 +179,11 @@ uint32_t cuda_default_throughput(int thr_id, uint32_t defcount)
 	//int dev_id = device_map[thr_id % MAX_GPUS];
 	uint32_t throughput = gpus_intensity[thr_id] ? gpus_intensity[thr_id] : defcount;
 	if (gpu_threads > 1 && throughput == defcount) throughput /= (gpu_threads-1);
+	if (thr_id >= 0 && thr_id < MAX_GPUS) {
+		if (!gpus_intensity[thr_id] && thr_tdr_cap[thr_id])
+			throughput = min(throughput, thr_tdr_cap[thr_id]);
+		thr_throughput[thr_id] = throughput;
+	}
 	if (api_thr_id != -1) api_set_throughput(thr_id, throughput);
 	//gpulog(LOG_INFO, thr_id, "throughput %u", throughput);
 	return throughput;
@@ -189,6 +202,81 @@ double throughput2intensity(uint32_t throughput)
 		intensity += ((double) (throughput-(1U << i)) / (1U << i));
 	}
 	return intensity;
+}
+
+// max launch time on a watchdog device (Windows TDR is 2 s)
+#define TDR_MAX_LAUNCH_SEC 0.5
+#define TDR_MIN_THROUGHPUT (1U << 16)
+
+static uint32_t pow2_floor(uint64_t v)
+{
+	uint32_t t = 1U << 31;
+	while (t > 1 && t > v) t >>= 1;
+	return v ? t : 0;
+}
+
+// largest power of two <= throughput done in max_sec at this hashrate
+uint32_t throughput_time_cap(uint32_t throughput, double hashrate, double max_sec)
+{
+	if (hashrate <= 0. || (double) throughput <= hashrate * max_sec)
+		return throughput;
+	uint32_t t = pow2_floor(throughput);
+	while (t > TDR_MIN_THROUGHPUT && (double) t > hashrate * max_sec)
+		t >>= 1;
+	return t;
+}
+
+// largest power of two <= throughput that fits in avail_bytes, 0 if none
+uint32_t throughput_mem_cap(uint32_t throughput, size_t bytes_per_thread, size_t avail_bytes)
+{
+	if (!bytes_per_thread || (uint64_t) throughput * bytes_per_thread <= avail_bytes)
+		return throughput;
+	return pow2_floor(min((uint64_t) throughput, (uint64_t) (avail_bytes / bytes_per_thread)));
+}
+
+// throughput that fits in free VRAM; call before allocating the algo buffers
+uint32_t cuda_mem_throughput_cap(int thr_id, uint32_t throughput, size_t bytes_per_thread, size_t fixed_bytes)
+{
+	size_t mfree = 0, mtotal = 0;
+	cudaSetDevice(device_map[thr_id % MAX_GPUS]);
+	if (cudaMemGetInfo(&mfree, &mtotal) != cudaSuccess || !mfree)
+		return throughput;
+	// keep room for driver and display, split between threads of one device
+	size_t reserve = max((size_t) 64 << 20, mfree / 10);
+	size_t avail = (mfree > reserve + fixed_bytes) ? (mfree - reserve - fixed_bytes) : 0;
+	if (gpu_threads > 1) avail /= gpu_threads;
+	uint32_t t = throughput_mem_cap(throughput, bytes_per_thread, avail);
+	if (t < throughput)
+		gpulog(LOG_WARNING, thr_id, "%u MB free, intensity lowered from %g to %g to fit",
+			(unsigned) (mfree >> 20), throughput2intensity(throughput), throughput2intensity(t));
+	return t;
+}
+
+// after each scan: on a watchdog device cap the default throughput to
+// TDR_MAX_LAUNCH_SEC per launch; an -i value is only warned about
+void cuda_check_launch_time(int thr_id, double hashrate)
+{
+	if (thr_id < 0 || thr_id >= MAX_GPUS || hashrate <= 0.)
+		return;
+	uint32_t throughput = thr_throughput[thr_id];
+	if (!throughput || !device_watchdog[device_map[thr_id]])
+		return;
+	double sec = (double) throughput / hashrate;
+	if (sec <= TDR_MAX_LAUNCH_SEC)
+		return;
+	if (gpus_intensity[thr_id]) {
+		if (!thr_tdr_warned[thr_id])
+			gpulog(LOG_WARNING, thr_id, "one launch takes about %.2f s on a display GPU, "
+				"close to the driver watchdog (TDR); consider a lower intensity", sec);
+		thr_tdr_warned[thr_id] = true;
+		return;
+	}
+	uint32_t cap = throughput_time_cap(throughput, hashrate, TDR_MAX_LAUNCH_SEC);
+	if (cap < throughput) {
+		thr_tdr_cap[thr_id] = cap;
+		gpulog(LOG_WARNING, thr_id, "one launch takes about %.2f s on a display GPU (TDR risk), "
+			"intensity lowered from %g to %g", sec, throughput2intensity(throughput), throughput2intensity(cap));
+	}
 }
 
 // if we use 2 threads on the same gpu, we need to reinit the threads

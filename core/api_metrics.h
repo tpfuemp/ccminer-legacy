@@ -1,14 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /*
- * Prometheus text exposition for GET /metrics.
- *
- * Renderer only: no miner state, no calls. The caller fills a POD struct from
- * the same snapshots the JSON builders use, so the two cannot disagree, and the
- * output is testable without a miner.
- *
- * Two conventions differ from the JSON side on purpose: base units and a
- * `_total` suffix on counters. A value the miner cannot supply is an omitted
- * series, never a zero.
+ * Prometheus text for GET /metrics, rendered from a POD the caller fills from
+ * the API snapshots. Base units, `_total` counters, missing values omitted.
  */
 
 #ifndef API_METRICS_H

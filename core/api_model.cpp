@@ -1,10 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-/*
- * Collectors and binary renderers for the API reports -- see api_model.h.
- *
- * The binary format strings are a compatibility surface: keep the output
- * byte-identical to the upstream binary API.
- */
+/* API collectors and binary renderers, see api_model.h */
 
 #include <stdio.h>
 #include <string.h>
@@ -363,9 +358,7 @@ int api_format_system_binary(const struct api_system_snapshot *s, char *out, siz
 		s->os, s->driver, s->cpus, s->cpu_temp_c, s->cpu_clock_mhz);
 }
 
-/* ---- JSON renderers ------------------------------------------------------
- * Nothing here reads a global the collector did not capture. Unit change from
- * the binary API: kH/s there, H/s here, converted once. */
+/* ---- JSON renderers (H/s, the binary API uses kH/s) ---------------------- */
 
 /* Unavailable values must be null, never 0 -- 0 means measured zero. */
 static json_t *jnum_or_null(double v, bool available)
@@ -556,9 +549,7 @@ json_t *api_build_system_json(const struct api_system_snapshot *s)
 
 /* ------------------------------------------------------------- metrics */
 
-/* Snapshot for GET /metrics. Deliberately not api_collect_thread(): that one
- * queries NVML/NVAPI per field, and a scraper polls every 15-60 s. Only plain
- * globals and the monitor thread's cached sample are read here. */
+/* GET /metrics snapshot: globals and the monitor thread's cached sample only */
 void api_collect_metrics(api_metrics_input *in)
 {
 	memset(in, 0, sizeof(*in));
@@ -583,9 +574,7 @@ void api_collect_metrics(api_metrics_input *in)
 	in->mining_active = !abort_flag && opt_n_threads > 0 &&
 		st != CTL_PAUSED && st != CTL_STOPPED && global_hashrate > 0.;
 
-	/* The per-pool counters are not monotonic -- a recycled pool slot takes its
-	 * predecessor's totals with it -- and a counter that goes backwards makes
-	 * rate() report a spike that never happened. Accumulate deltas. */
+	/* pool slot counters are not monotonic: accumulate deltas */
 	static uint64_t tot_acc = 0, tot_rej = 0, tot_stale = 0, tot_solved = 0;
 	static uint32_t seen_acc = 0, seen_rej = 0, seen_stale = 0, seen_solved = 0;
 	uint32_t acc = 0, rej = 0, stale = 0, solved = 0;
@@ -615,9 +604,7 @@ void api_collect_metrics(api_metrics_input *in)
 		snprintf(d->algo, sizeof(d->algo), "%s", algo_buf);
 		d->hashrate_hs = mining_is_parked() ? 0.0 : stats_get_speed(i, 0.0);
 
-		/* Only what the monitor thread sampled; it does not run under --quiet,
-		 * so "no temperature" is normal and a fabricated 0 would poison every
-		 * average built on it. */
+		/* monitor thread samples only (none under --quiet), never a fake 0 */
 		d->has_temp  = cgpu->monitor.gpu_temp  > 0;
 		d->temp_c    = (double) cgpu->monitor.gpu_temp;
 		d->has_power = cgpu->monitor.gpu_power > 0;

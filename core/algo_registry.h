@@ -2,18 +2,9 @@
 #define ALGO_REGISTRY_H
 
 /*
- * Algo self-registration.
- *
- * Every algo folder has a register.cpp that calls ALGO_REGISTER once per
- * enum sha_algos id it implements. The host code only reaches algos through
- * algo_find(), so the build contains exactly the algos whose files are
- * compiled in; an id without a registration is "not available in this build".
- *
- * Registration runs from static initializers, before main(). The table is a
- * zero-initialized array indexed by id, so it is valid before any dynamic
- * init runs and the order in which objects register does not matter.
- *
- * This header is included from .cu files: keep it plain C++11.
+ * Algo self-registration: each algos/<name>/register.cpp calls ALGO_REGISTER
+ * per id it implements (static initializers, order independent). An id
+ * without registration is not available in this build. Plain C++11 (.cu).
  */
 
 #include <stdint.h>
@@ -33,6 +24,7 @@ struct algo_desc {
 	algo_scanhash_fn scanhash;
 	algo_free_fn free;
 	algo_cpu_hash_fn cpu_hash; /* NULL if the algo has no 80-byte CPU hash */
+	const char *help;          /* one line for --help */
 };
 
 void algo_register(const struct algo_desc *desc);
@@ -47,8 +39,32 @@ struct algo_registrar {
 	explicit algo_registrar(const struct algo_desc *desc) { algo_register(desc); }
 };
 
-#define ALGO_REGISTER(id, scanhash, free, cpu_hash) \
-	static const struct algo_desc algo_desc_##id = { id, scanhash, free, cpu_hash }; \
+#define ALGO_REGISTER(id, scanhash, free, cpu_hash, help) \
+	static const struct algo_desc algo_desc_##id = { id, scanhash, free, cpu_hash, help }; \
 	static struct algo_registrar algo_registrar_##id(&algo_desc_##id)
+
+/*
+ * Known-answer vectors for --test-vectors: `header` is an 80-byte header in
+ * hex whose nonce (bytes 76..79) is a solution, `hash` its cpu_hash() output.
+ */
+struct algo_test_vector {
+	const char *header;
+	const char *hash;
+};
+
+void algo_register_tests(int id, const struct algo_test_vector *v, int count);
+
+/* number of vectors of the algo (0 if none), *v set to the first */
+int algo_find_tests(int id, const struct algo_test_vector **v);
+
+struct algo_tests_registrar {
+	algo_tests_registrar(int id, const struct algo_test_vector *v, int count) {
+		algo_register_tests(id, v, count);
+	}
+};
+
+#define ALGO_TEST_VECTORS(id, vectors) \
+	static struct algo_tests_registrar algo_tests_registrar_##id(id, vectors, \
+		(int) (sizeof(vectors) / sizeof((vectors)[0])))
 
 #endif

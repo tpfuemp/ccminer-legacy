@@ -82,6 +82,20 @@ CUDA_LIBS="-lcudart_static -ldl -lrt"
 NVCC="$with_cuda/bin/nvcc"
 AS_IF([test -x "$NVCC"], [], [AC_MSG_ERROR([nvcc not found in $with_cuda/bin, use --with-cuda=PATH])])
 
+dnl Host compiler for nvcc, for systems whose default gcc is too new for the toolkit.
+AC_ARG_WITH([nvcc-ccbin],
+  [AS_HELP_STRING([--with-nvcc-ccbin=PATH], [host compiler for nvcc, e.g. g++-5 @<:@default: nvcc's choice@:>@])],
+  [], [with_nvcc_ccbin=no])
+NVCC_CCBIN=""
+AS_CASE([$with_nvcc_ccbin],
+  [no], [],
+  [yes|""], [AC_MSG_ERROR([--with-nvcc-ccbin needs a compiler, e.g. --with-nvcc-ccbin=g++-5])],
+  [AS_IF([test -x "$with_nvcc_ccbin" || command -v "$with_nvcc_ccbin" >/dev/null 2>&1], [],
+     [AC_MSG_ERROR([nvcc host compiler $with_nvcc_ccbin not found])])
+   NVCC_CCBIN="-ccbin=$with_nvcc_ccbin"
+   AC_MSG_NOTICE([nvcc host compiler: $with_nvcc_ccbin])])
+AC_SUBST(NVCC_CCBIN)
+
 NVCC_VERSION=`"$NVCC" --version | sed -n 's/.*release \([[0-9]]*\.[[0-9]]*\).*/\1/p'`
 AC_MSG_NOTICE([nvcc release $NVCC_VERSION])
 

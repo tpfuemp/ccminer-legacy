@@ -1,16 +1,8 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /*
- * Minimal HTTP/1.1 server subset for the REST API -- transport only.
- *
- * No miner symbols: it takes a socket, a route table and an opaque context.
- * A route a miner cannot serve is registered available = false and answered
- * 501 here rather than with an #ifdef in the handler.
- *
- * Not supported, deliberately: keep-alive, pipelining, chunked request bodies,
- * compression. Every response is Connection: close -- the API is one thread on
- * a blocking accept(), so a persistent connection would block every client.
- *
- * api_http_parse() is a pure function over a buffer (no socket, no globals).
+ * Minimal HTTP/1.1 transport for the REST API, no miner symbols. Routes with
+ * available = false answer 501. No keep-alive, pipelining, chunked bodies or
+ * compression: every response is Connection: close.
  */
 
 #ifndef API_HTTP_H
@@ -79,9 +71,7 @@ typedef enum {
 typedef int (*api_handler_fn)(const api_request *req, void *ctx,
                               json_t **out, char *errmsg, size_t errlen);
 
-/* Same contract, but the body is already-rendered text and the route names its
- * own content type (Prometheus exposition is not JSON). On success the handler
- * stores a malloc'd buffer in *out and the transport frees it. */
+/* text body with its own content type; *out is malloc'd, freed by the transport */
 typedef int (*api_text_fn)(const api_request *req, void *ctx,
                            char **out, char *errmsg, size_t errlen);
 
@@ -105,9 +95,7 @@ typedef struct {
 	const char *miner_json;      /* serialized "miner" object, may be NULL  */
 } api_http_config;
 
-/* Parse a request out of buf. Pure: no socket, no globals.
- * Returns API_PARSE_INCOMPLETE while the header block or the declared body is
- * not yet complete, so a caller can loop on recv(). */
+/* pure; API_PARSE_INCOMPLETE until headers and body are complete */
 api_parse_status api_http_parse(const char *buf, size_t len, api_request *req);
 
 /* Percent-decode in place; false on %00 or a malformed escape. */
@@ -133,9 +121,7 @@ int api_http_send(int sock, int status, const char *content_type,
 int api_http_serve(int sock, const api_route *routes, size_t nroutes,
                    void *ctx, const api_http_config *cfg);
 
-/* As api_http_serve(), but starting from bytes already read off the socket.
- * A caller that has to sniff the protocol has necessarily consumed the request
- * line already; handing those bytes back here avoids a peek-then-read dance. */
+/* api_http_serve() with bytes already read from the socket */
 int api_http_serve_prefixed(int sock, const char *prefix, size_t prefixlen,
                             const api_route *routes, size_t nroutes,
                             void *ctx, const api_http_config *cfg);

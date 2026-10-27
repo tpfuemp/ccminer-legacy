@@ -258,10 +258,7 @@ bool pool_switch(int thr_id, int pooln)
 
 	pthread_mutex_unlock(&stratum_work_lock);
 
-	/* A pool added at runtime (API or seturl) never passed through
-	 * pool_init_defaults(), so its algo is still the unset sentinel. Assigning
-	 * -1 below would put opt_algo out of range for algo_names[] and the
-	 * scanhash dispatch. */
+	/* pools added at runtime have no algo yet */
 	if (p->algo == -1)
 		p->algo = (int) opt_algo;
 
@@ -272,16 +269,12 @@ bool pool_switch(int thr_id, int pooln)
 
 		opt_algo = (enum sha_algos) p->algo;
 
-		/* Device buffers belong to the miner threads; this runs on the caller's. Each thread frees
-		 * its own when it sees the generation move. */
+		/* each miner thread frees its buffers when the generation moves */
 		algo_switch_gen++;
 
 	}
 
-	/* The algo int does not carry which yespower coin the pool asked for, and two
-	 * coins can share one enum while differing in (N, r, pers).  So this runs on
-	 * every switch, not only when the enum moves, and bumps the generation when
-	 * the variant actually changed so the device buffers are re-sized. */
+	/* yespower coins share an enum: apply the variant on every switch */
 	if ((opt_algo == ALGO_YESPOWER || opt_algo == ALGO_YESPOWERR16) && p->algo_name[0]) {
 		char prev_variant[32];
 		snprintf(prev_variant, sizeof(prev_variant), "%s", yespower_variant_name());
@@ -397,10 +390,7 @@ bool pool_switch_url_algo(char *params, int algo)
 	// and to handle the "hot swap" from current one...
 	cur_pooln = prevn;
 	if (nextn == prevn) {
-		/* parse_arg('o') only rotates when the current slot is in use, so an
-		 * unused slot is filled in place -- and pool_switch()'s reconnect block is
-		 * gated on prevn != cur_pooln, so switching there would swap rpc_url while
-		 * keeping the old connection. */
+		/* filled in place: pool_switch() would not reconnect */
 		applog(LOG_WARNING, "pool switch: url filled the current slot %d in place "
 			"(no free slot rotated), refusing a switch that would not reconnect", prevn);
 		return false;

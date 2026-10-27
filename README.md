@@ -51,19 +51,34 @@ compiled in, both on the command line and when a pool switches algorithm.
 
 | `-a` name | Coin / description |
 |---|---|
+| `blake` | Blake-256, 14 rounds (Saffroncoin) |
+| `blakecoin` | Blake-256, 8 rounds (Blakecoin) |
+| `keccak` | Keccak-256 (Maxcoin) |
+| `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
 | `sha256d` | SHA256d (Bitcoin) |
+| `skein` | Skein-512 + SHA256 (Skeincoin) |
 
 Run `ccminer --help` for the authoritative list.
 
 Tested hardware
 ---------------
 
-sha256d `--benchmark`, release builds:
+`--benchmark` with the default intensity, release builds, 60 s runs
+(`--time-limit=60`). Fast cards throttle as they heat up, so compare runs
+only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 
-| GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
-|---|---|---|---|---|
-| GTX 660M (`sm_30`) | Windows 10 | 425.31 | 46.7 MH/s (PTX JIT) | 46.5 MH/s |
-| GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1697 MH/s | 1672 MH/s |
+| Algorithm | GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
+|---|---|---|---|---|---|
+| sha256d | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 46.7 MH/s (PTX JIT) | 46.5 MH/s |
+| sha256d | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1687 MH/s | 1856 MH/s |
+| blake | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 123.6 MH/s (PTX JIT) | 126.1 MH/s |
+| blake | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 4059 MH/s | 4164 MH/s |
+| blakecoin | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 227.8 MH/s (PTX JIT) | 227.6 MH/s |
+| blakecoin | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 7255 MH/s | 7484 MH/s |
+| skein | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 22.2 MH/s (PTX JIT) | 22.6 MH/s |
+| skein | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 579 MH/s | 653 MH/s |
+| keccak | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 21.3 MH/s (PTX JIT) | 21.8 MH/s |
+| keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
 
 Maxwell (`sm_50`, `sm_52`) is untested so far; reports are welcome.
 
@@ -114,6 +129,9 @@ or `build-linux/cuda10/ccminer`. Its arguments go to `configure`:
   newer toolkits.
   `N` embeds `sm_N` code plus `compute_N` PTX, `ptxN` embeds PTX only (for
   testing the driver JIT, e.g. `--with-cuda-arch=ptx52`).
+- `--with-nvcc-ccbin=PATH`: host compiler for nvcc, for systems whose default
+  GCC is too new for the toolkit (CUDA 8 needs GCC 5 or older, CUDA 10.1 GCC 8
+  or older), e.g. `--with-nvcc-ccbin=g++-5`. Use the same version for `CXX`.
 
 The binary links the distribution's curl and OpenSSL 1.0 libraries, so run it
 where it was built. With the Docker image and the NVIDIA Container Toolkit:
@@ -137,9 +155,38 @@ These build `x64\Release-cuda8-jit52\ccminer-cuda8.exe` and
 variants: `-sm30` (`compute_30,sm_30` / `30`), `-jit52` and `-jit35` (PTX
 only), `-fat` (every arch native plus PTX).
 
+In an existing Linux build directory, `make NVCC_ARCH=...` overrides the
+configured GPU code with raw nvcc flags, e.g.
+`make NVCC_ARCH="-gencode=arch=compute_52,code=compute_52"` (touch or clean
+the `.cu` objects first, make does not track the flags).
+
+`cuobjdump` from the toolkit shows what a binary contains: `--list-elf` the
+native code, `--list-ptx` the PTX the driver can JIT-compile (for GPUs of that
+architecture or newer):
+
+    cuobjdump --list-elf --list-ptx build-linux/cuda8-jit52/ccminer
+
 Run JIT builds with `CUDA_CACHE_DISABLE=1` when timing or testing them, so the
 driver compiles the PTX each time instead of reusing a cached result from an
-earlier build.
+earlier build:
+
+    CUDA_CACHE_DISABLE=1 build-linux/cuda8-jit52/ccminer -a sha256d --test-vectors
+    set CUDA_CACHE_DISABLE=1
+    x64\Release-cuda8-jit52\ccminer-cuda8.exe -a sha256d --test-vectors
+
+Test vectors
+------------
+
+`ccminer --test-vectors` checks every algo in the build against known block
+hashes and exits with 0 when all pass, 3 when one fails. Each vector is first
+hashed on the CPU, then every GPU scans a nonce range that ends at the
+vector's nonce and must find it, with every reported nonce verified on the
+CPU. No pool is needed, and `-d` selects the GPUs as usual:
+
+    ccminer --test-vectors -d 0
+
+The vectors live next to the algo in `algos/<name>/register.cpp`
+(`ALGO_TEST_VECTORS`); sha256d uses the Bitcoin genesis block.
 
 Source lists
 ------------

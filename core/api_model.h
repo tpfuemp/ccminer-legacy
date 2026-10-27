@@ -1,20 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
- * Neutral snapshots of everything the API reports, and the renderers over them:
- *
- *     api_collect_*()        read the live globals into a snapshot
- *     api_format_*_binary()  legacy K=V;K=V;| form
+ * API snapshots (copies of the live globals) and renderers:
+ *     api_collect_*()        globals -> snapshot
+ *     api_format_*_binary()  legacy K=V;| form, keep byte-identical
  *     api_build_*_json()     JSON form
- *
- * so both renderers report the same numbers. The binary output is a
- * compatibility surface for existing monitoring tools and must stay
- * byte-identical.
- *
- * Snapshots hold copies, never pointers into miner state: the API thread reads
- * live globals without locks, so each field is read once and then formatted.
- *
- * Keep out of miner.h -- that header is one large extern "C" block, and these
- * are C++-linkage declarations.
+ * C++ linkage, so not in miner.h.
  */
 
 #ifndef API_MODEL_H

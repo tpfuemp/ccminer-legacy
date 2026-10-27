@@ -1,15 +1,8 @@
 #!/bin/sh
-# Out-of-tree Linux build into build-linux/cuda<major>/. Arguments are passed
-# to configure, e.g. ./build.sh --with-cuda-arch="ptx52".
-# CUDA selects the toolkit in /usr/local/cuda-$CUDA (default 8.0), e.g.
-# CUDA=10.1 ./build.sh builds build-linux/cuda10/ccminer. TAG is appended to
-# the directory name, e.g. TAG=-jit52 ./build.sh --with-cuda-arch=ptx52 builds
-# build-linux/cuda8-jit52/ccminer.
-#
-# configure is run through a relative path so sources reach the compilers as
-# relative paths and no build directory ends up in the binary (__FILE__).
-# No -march=native: the host code is only the CPU reference, and a portable
-# baseline keeps the binary running on older CPUs.
+# Out-of-tree Linux build into build-linux/cuda<major><TAG>/, arguments go to
+# configure. CUDA=10.1 selects /usr/local/cuda-10.1 (default 8.0), e.g.
+#   CUDA=10.1 TAG=-jit52 ./build.sh --with-cuda-arch=ptx52
+# configure runs via a relative path so no build path ends up in __FILE__.
 set -e
 cd "$(dirname "$0")"
 

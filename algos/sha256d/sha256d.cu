@@ -84,9 +84,13 @@ extern "C" int scanhash_sha256d(int thr_id, struct work* work, uint32_t max_nonc
 
 	do {
 		// Hash with CUDA
-		*hashes_done = pdata[19] - first_nonce + throughput;
+		// the last launch covers only the rest of the range
+		const uint32_t batch = (uint32_t) min((uint64_t) throughput, (uint64_t) max_nonce - pdata[19]);
+		if (!batch)
+			break;
+		*hashes_done = pdata[19] - first_nonce + batch;
 
-		sha256d_hash_80(thr_id, throughput, pdata[19], ms, pdata[16], pdata[17], pdata[18], work->nonces);
+		sha256d_hash_80(thr_id, batch, pdata[19], ms, pdata[16], pdata[17], pdata[18], work->nonces);
 		if (work->nonces[0] != UINT32_MAX)
 		{
 			uint32_t _ALIGN(64) vhash[8];
@@ -117,12 +121,12 @@ extern "C" int scanhash_sha256d(int thr_id, struct work* work, uint32_t max_nonc
 			}
 		}
 
-		if ((uint64_t) throughput + pdata[19] >= max_nonce) {
+		if ((uint64_t) batch + pdata[19] >= max_nonce) {
 			pdata[19] = max_nonce;
 			break;
 		}
 
-		pdata[19] += throughput;
+		pdata[19] += batch;
 
 	} while (!work_restart[thr_id].restart);
 

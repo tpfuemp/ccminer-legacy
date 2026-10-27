@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-/*
- * Route handlers for the REST API.
- *
- * Each handler collects a snapshot (api_model.h), builds JSON from it and
- * returns an HTTP status. Handlers never touch the socket.
- *
- * Routes this build does not serve are registered available = false, so they
- * answer 501 and the capability list stays truthful.
- */
+/* REST API route handlers: snapshot -> JSON -> HTTP status, no socket I/O.
+ * Routes this build cannot serve are available = false (501). */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -459,9 +452,7 @@ static int h_history(const api_request *req, void *ctx, json_t **out, char *e, s
 		json_object_set_new(r, "thread_id", json_integer(data[i].thr_id));
 		json_object_set_new(r, "device_id", json_integer(data[i].gpu_id));
 		json_object_set_new(r, "height", json_integer(data[i].height));
-		/* stats_data.hashrate is already H/s -- stats.cpp compares it directly
-		 * against global_hashrate. The binary API prints this same value under
-		 * the key KHS, which mislabels it; do not copy that here. */
+		/* already H/s (the binary API's KHS key mislabels it) */
 		json_object_set_new(r, "hashrate_hs", json_real(data[i].hashrate));
 		json_object_set_new(r, "difficulty", json_real(data[i].difficulty));
 		json_object_set_new(r, "hashcount", json_integer(data[i].hashcount));
@@ -534,9 +525,7 @@ static int h_meminfo(const api_request *req, void *ctx, json_t **out, char *e, s
 
 /* ------------------------------------------------------------ write routes */
 
-/* Body parsing is explicit about types: a wrong type is 400, never a crash and
- * never a silent coercion. An absent body is treated as an empty object so a
- * verb that needs no arguments works with or without one. */
+/* wrong type -> 400; no body = empty object */
 static json_t *parse_body(const api_request *req, char *e, size_t n, int *status)
 {
 	if (!req->body_len) {
@@ -639,9 +628,7 @@ static int h_pools_switch(const api_request *req, void *ctx, json_t **out, char 
 	return 200;
 }
 
-/* parse_arg('o') accepts exactly these, and calls show_usage_and_exit() on
- * anything else -- which would terminate the miner from an API request. The
- * scheme is therefore validated here, before the value can reach it. */
+/* validated here: parse_arg('o') exits on anything else */
 static bool scheme_supported(const char *url)
 {
 	static const char *ok[] = {
@@ -687,10 +674,8 @@ static int h_pools_url(const api_request *req, void *ctx, json_t **out, char *e,
 		return 400;
 	}
 
-	/* Assemble the scheme://user:pass@host form parse_arg('o') expects, so a
-	 * client never has to build a packed string. The
-	 * credentials are stripped back out of the stored url by the parser, which
-	 * is why /pools can never return them. */
+	/* scheme://user:pass@host for parse_arg('o'), which strips the
+	 * credentials from the stored url */
 	char packed[1280];
 	int wrote;
 	if (user && *user) {

@@ -128,10 +128,7 @@ enum sha_algos {
 
 extern volatile enum sha_algos opt_algo;
 
-// ProgPoW-over-ethash family (KawPoW + the MeowPow/EvrProgPow/FiroPoW variants
-// in algos/progpow_multi/). They share the ethproxy/kawpow stratum wire format
-// and the work->kawpow_* job fields, so the stratum/submit/gen_work paths treat
-// them uniformly; only the scanhash dispatch differs per variant.
+// ProgPoW family: shared kawpow stratum format and work->kawpow_* fields
 static inline int is_progpow_algo(int a)
 {
 	return a == ALGO_KAWPOW || a == ALGO_MEOWPOW || a == ALGO_EVRPROGPOW ||
@@ -276,12 +273,8 @@ static inline int algo_to_int(char* arg)
 		// some aliases...
 		if (!strcasecmp("all", arg))
 			i = ALGO_AUTO;
-		/* Every wild yespower 1.0 coin is -a yespower with a distinct
-		 * --yespower-key on the r=32 default, so these are aliases, not algos.
-		 * The parameters each one needs live in the table in
-		 * algos/yespower/yespower.cu, which `-a` applies via
-		 * yespower_set_variant(); a name added here and not there aborts at
-		 * startup rather than mining generic parameters. */
+		/* yespower coins are aliases; their parameters come from
+		 * yespower_set_variant() */
 		else if (!strcasecmp("yespower-b2b", arg))
 			i = ALGO_POWER2B;
 		else if (!strcasecmp("yenten", arg))

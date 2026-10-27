@@ -34,9 +34,7 @@ static struct api_ctl ctl = { CTL_RUNNING, false, false, 0, 0, 0, 0, 0, { 0 }, f
 
 /* --- control worker ----------------------------------------------------- */
 
-/* Mutations run here, not on the single-threaded accept loop, which they would
- * stall for the whole barrier. One slot: a second request is refused, not
- * queued. The bounded wait is what makes a 202 possible. */
+/* changes run on this worker, one at a time (a second request is refused) */
 typedef enum { WK_STATE = 0, WK_PROFILE } wk_kind_t;
 
 static struct {
@@ -390,9 +388,7 @@ ctl_result_t api_ctl_profile(const ctl_profile_req *req, int wait_ms,
 	return submit(WK_PROFILE, CTL_RUNNING, req, wait_ms, err, errlen);
 }
 
-/* A posted-but-unfinished request IS a switch in progress, including the window
- * where ctl_apply has stored the target but still holds the lock -- otherwise
- * "poll until state leaves switching" returns too early. */
+/* a posted, unfinished request counts as switching */
 ctl_state_t api_ctl_get_state(void)
 {
 	return (wk.pending || wk.busy) ? CTL_SWITCHING : ctl.state;
@@ -512,9 +508,7 @@ bool api_ctl_algo_accepts(int algo, const char *name)
 	return false;
 }
 
-/* Every value is range-checked here before parse_arg() sees it, because
- * parse_arg's own error path is show_usage_and_exit() -- reachable from the
- * network it would turn a bad parameter into a remote process kill. */
+/* range-checked here: parse_arg() exits on bad values */
 static bool value_ok(const ctl_param_def_t *def, const char *v, char *err, size_t errlen)
 {
 	if (def->type == CTLP_STRING)
@@ -876,11 +870,8 @@ static bool pool_switch_via_stratum(const char *packed, int index, int algo,
 
 /* --- profile: algo + params + pool + run, applied atomically ------------ */
 
-/*
- * Worker thread, every mining thread parked. Each step records what it replaced
- * so a failure walks back before the threads are released: a half-switched
- * miner (new algo, old pool) mines for nobody while looking healthy.
- */
+/* runs with the mining threads parked; a failed step rolls back the earlier
+ * ones before they resume */
 static bool profile_apply(const ctl_profile_req *p, char *err, size_t errlen)
 {
 	const int   old_algo = opt_algo;
@@ -889,17 +880,13 @@ static bool profile_apply(const ctl_profile_req *p, char *err, size_t errlen)
 	bool params_touched = false;
 	char old_variant[32];
 
-	/* Which yespower coin was selected, for the same walk-back reason: the algo
-	 * int does not carry it, so restoring opt_algo alone would leave the previous
-	 * algo running the new coin's (N, r, pers). */
+	/* yespower variant, for the rollback */
 	snprintf(old_variant, sizeof(old_variant), "%s", yespower_variant_name());
 
 	if (algo_changed)
 		opt_algo = (enum sha_algos) p->algo;
 
-	/* Not gated on the enum moving: `algo_name` exists because the int loses the
-	 * coin, and two yespower coins can share one enum with different (N, r, pers).
-	 * Mirrors the same rule in pools.cpp. */
+	/* yespower coins share an enum: apply the variant always (as in pools.cpp) */
 	if (p->has_algo &&
 	    (opt_algo == ALGO_YESPOWER || opt_algo == ALGO_YESPOWERR16)) {
 		if (!yespower_set_variant(p->algo_name)) {
@@ -925,9 +912,7 @@ static bool profile_apply(const ctl_profile_req *p, char *err, size_t errlen)
 				yespower_set_variant(old_variant);
 				api_ctl_params_restore(opt_algo);
 			} else if (variant_changed) {
-				/* opt_algo never moved, so restoring it is a no-op and
-				* api_ctl_params_restore would undo this request's own
-				* params. Only the coin needs walking back. */
+				/* algo unchanged: only the yespower variant rolls back */
 				yespower_set_variant(old_variant);
 			}
 			return false;
@@ -939,10 +924,7 @@ static bool profile_apply(const ctl_profile_req *p, char *err, size_t errlen)
 
 	if (p->has_pool || p->has_pool_index) {
 		switch_in_flight = true;
-		/* Drain window before the pool changes. Threads are parked, so no new
-		 * share can be found, but a share found just before the barrier is
-		 * submitted asynchronously and would otherwise land on the new
-		 * connection as "Invalid job id" -- real work, thrown away. */
+		/* let shares found before the barrier reach the old pool */
 		if (have_stratum)
 			usleep(500 * 1000);
 	}
@@ -964,9 +946,7 @@ static bool profile_apply(const ctl_profile_req *p, char *err, size_t errlen)
 				yespower_set_variant(old_variant);
 				api_ctl_params_restore(opt_algo);
 			} else if (variant_changed) {
-				/* opt_algo never moved, so restoring it is a no-op and
-				* api_ctl_params_restore would undo this request's own
-				* params. Only the coin needs walking back. */
+				/* algo unchanged: only the yespower variant rolls back */
 				yespower_set_variant(old_variant);
 			}
 			return false;
@@ -978,19 +958,14 @@ static bool profile_apply(const ctl_profile_req *p, char *err, size_t errlen)
 				yespower_set_variant(old_variant);
 				api_ctl_params_restore(opt_algo);
 			} else if (variant_changed) {
-				/* opt_algo never moved, so restoring it is a no-op and
-				* api_ctl_params_restore would undo this request's own
-				* params. Only the coin needs walking back. */
+				/* algo unchanged: only the yespower variant rolls back */
 				yespower_set_variant(old_variant);
 			}
 			return false;
 		}
 	}
 
-	/* Wait for the pool to come up: this window is the only one where the
-	 * reconnect escalation is suppressed, so it is where the manager's choice
-	 * is guaranteed to hold. A pool that never connects is reported, not
-	 * rolled back -- rolling one back is itself a switch. */
+	/* wait for the pool; one that never connects is reported, not rolled back */
 	if ((p->has_pool || p->has_pool_index) && have_stratum) {
 		extern struct stratum_ctx stratum;
 		const int slice = 100;
@@ -1005,10 +980,7 @@ static bool profile_apply(const ctl_profile_req *p, char *err, size_t errlen)
 	}
 
 	if (algo_changed || variant_changed) {
-		/* pool_switch() cannot bump this here: opt_algo was assigned above.  A
-		 * variant-only change must bump it too, since yespower sizes its buffers
-		 * and uploads `pers` under its init guard.  Last, after every rollback.
-		 * The stats reset is skipped there for the same reason. */
+		/* also for a variant-only change (yespower buffers), after any rollback */
 		pool_reset_algo_stats();
 		algo_switch_gen++;
 		if (algo_changed)

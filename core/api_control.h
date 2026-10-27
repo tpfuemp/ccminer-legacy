@@ -1,15 +1,8 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /*
- * Runtime control: pause, resume and stop mining without restarting the
- * process.
- *
- * A park barrier, not thread cancellation: every mining thread is asked to
- * idle and nothing changes until all of them have, so the CUDA context and the
- * stratum connection survive a switch.
- *
- * Threading: mining threads only read pause_requested and only write parked.
- * The mutex serialises control callers against each other, never the mining
- * loop.
+ * Runtime control (pause, resume, switch) via a park barrier: changes apply
+ * once every mining thread is parked. Mining threads only read
+ * pause_requested and write parked; the mutex is for control callers.
  */
 
 #ifndef API_CONTROL_H
@@ -49,9 +42,7 @@ void api_ctl_shutdown(void);
 /* The whole hook. One leading condition in wanna_mine(). */
 bool api_ctl_wants_pause(void);
 
-/* Called from the miner loop's idle branch once a thread has released its
- * resources. Blocks in short slices while the pause stands, so a resume is
- * seen quickly; returns when mining may continue. */
+/* miner loop idle branch: blocks while paused */
 void api_ctl_park(int thr_id);
 
 /* --- control side ------------------------------------------------------ */
@@ -62,11 +53,7 @@ ctl_result_t api_ctl_set_state(ctl_state_t target, int wait_ms);
 
 /* --- algo parameters ---------------------------------------------------- */
 
-/*
- * A whitelist, not a passthrough: only these names, only for the algos that
- * consume them. A parameter the target algo would ignore is rejected, never
- * dropped silently.
- */
+/* whitelist; a parameter the target algo ignores is rejected */
 typedef enum {
 	CTLP_INT = 0,
 	CTLP_STRING,
@@ -106,12 +93,8 @@ bool api_ctl_ready_for_switch(void);
 int  api_ctl_retry_after_s(void);
 void api_ctl_note_switch(void);
 
-/*
- * One atomic change of algo + params + pool + run state.
- *
- * Passed by value: when wait_ms expires the request outlives the caller (that
- * is what the 202 path is), so a caller-owned struct would dangle.
- */
+/* one atomic change of algo + params + pool + run state; by value because
+ * it can outlive the caller (202 path) */
 #define CTL_MAX_PARAMS 12
 #define CTL_PARAM_NAME_MAX 24
 #define CTL_PARAM_VALUE_MAX 256
@@ -148,11 +131,7 @@ ctl_result_t api_ctl_profile(const ctl_profile_req *req, int wait_ms,
 
 /* --- pool switch handshake ---------------------------------------------- */
 
-/*
- * A pool switch must run on the stratum thread: pool_switch() replaces the
- * global stratum struct while stratum_recv_line() reads it under no lock.
- * The control side posts the url here and waits for the ack.
- */
+/* pool switches run on the stratum thread; control posts the url and waits */
 /* index >= 0 means switch to an existing pool slot; otherwise use url. */
 bool api_ctl_pool_request_take(char *url, size_t urllen, int *index, int *algo);
 bool api_ctl_pool_request_pending(void);

@@ -24,14 +24,19 @@ ccminer_SOURCES = \
 	core/compat.h core/crc32.c core/cuda.cpp core/elist.h core/hashlog.cpp \
 	core/miner.h core/nvapi.cpp core/nvml.cpp core/nvml.h core/nvsettings.cpp \
 	core/pools.cpp core/serialize.hpp core/sha256.c core/stats.cpp \
-	core/sysinfos.cpp core/uint256.h core/util.cpp \
-	cuda/cuda_helper.h cuda/selftest_gate.cuh cuda/sha256_device.cuh
+	core/sysinfos.cpp core/test_vectors.cpp core/uint256.h core/util.cpp \
+	cuda/cuda_compat.h cuda/cuda_helper.h cuda/selftest_gate.cuh cuda/sha256_device.cuh \
+	sph/blake.c sph/keccak.c sph/skein.c sph/sph_blake.h sph/sph_keccak.h \
+	sph/sph_skein.h sph/sph_types.h
 
 # WITH_* switches of the ported algos, added by their algo.mk
 ALGO_DEFINES =
 
 include $(srcdir)/algos/common/algo.mk
+include $(srcdir)/algos/blake/algo.mk
 include $(srcdir)/algos/sha256d/algo.mk
+include $(srcdir)/algos/keccak/algo.mk
+include $(srcdir)/algos/skein/algo.mk
 
 COMMON_INCLUDES = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/core \
 		  -I$(top_srcdir)/cuda $(JANSSON_INCLUDES) @CUDA_INCLUDES@
@@ -45,12 +50,12 @@ ccminer_LDADD    = @LIBCURL@ @JANSSON_LIBS@ @PTHREAD_LIBS@ @CUDA_LIBS@ @LIBS@
 
 # GPU archs come from configure --with-cuda-arch; "make NVCC_ARCH=..." overrides.
 NVCC_ARCH = @NVCC_ARCH@
-nvcc_FLAGS = $(NVCC_ARCH) -std=c++11 $(COMMON_INCLUDES) $(COMMON_DEFINES) \
+NVCC_CCBIN = @NVCC_CCBIN@
+nvcc_FLAGS = $(NVCC_ARCH) $(NVCC_CCBIN) -std=c++11 $(COMMON_INCLUDES) $(COMMON_DEFINES) \
 	     @CUDA_CFLAGS@ -Xcompiler -Wall
 
-# Sources are passed relative to the build dir (configure is run as a relative
-# path), so __FILE__ in CUDA_SAFE_CALL embeds no build path: GCC 5 has no
-# -ffile-prefix-map. Out-of-tree builds need the object dir created here.
+# Relative source paths keep build paths out of __FILE__ (no -ffile-prefix-map
+# in GCC 5); out-of-tree builds need the object dir created here.
 .cu.o:
 	@$(MKDIR_P) $(@D)
 	$(NVCC) $(nvcc_FLAGS) -o $@ -c $<

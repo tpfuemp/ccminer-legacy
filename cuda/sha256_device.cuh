@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
- * Shared SHA-256 primitive library (host + device).
- *
- * Round primitives and transforms extracted bit-identically from the
- * tpruvot-lineage sha256t implementation. Every cryptographic primitive is a
- * separately callable building block; fused kernels
- * call these instead of re-implementing them.
+ * SHA-256 building blocks for host and device (from the tpruvot sha256t
+ * kernels); algo kernels call these instead of re-implementing them.
  */
 
 #ifndef CUDA_SHA256_DEVICE_CUH
@@ -14,8 +10,7 @@
 #include <stdint.h>
 #include <cuda_helper.h> // ROTR32 (single SHF on device, shift/or on host)
 
-/* Shared initializers so the host copies and the per-TU device copies can
- * never drift apart. */
+/* shared by the host and the device copies */
 #define SHA256_K_INIT { \
 	0x428A2F98U, 0x71374491U, 0xB5C0FBCFU, 0xE9B5DBA5U, 0x3956C25BU, 0x59F111F1U, 0x923F82A4U, 0xAB1C5ED5U, \
 	0xD807AA98U, 0x12835B01U, 0x243185BEU, 0x550C7DC3U, 0x72BE5D74U, 0x80DEB1FEU, 0x9BDC06A7U, 0xC19BF174U, \
@@ -34,16 +29,13 @@ static const uint32_t h_sha256_K[64] = SHA256_K_INIT;
 static const uint32_t h_sha256_H[8]  = SHA256_H_INIT;
 
 #ifdef __CUDACC__
-/* Statically initialized __constant__ copies: no cudaMemcpyToSymbol needed,
- * one 288-byte copy per translation unit. Kernels that want K in shared
- * memory or as immediates stage from / bypass these locally. */
+/* statically initialized, one copy per translation unit */
 static __constant__ uint32_t c_sha256_K[64] = SHA256_K_INIT;
 static __constant__ uint32_t c_sha256_H[8]  = SHA256_H_INIT;
 #endif
 
 /* --------------------------------------------------------------------------
- * Round primitives. Formulations are the LOP3-friendly ones (single LOP3.LUT
- * per Ch/Maj on sm_50+; verified in the KlausT donor kernel).
+ * Round primitives (Ch/Maj map to one LOP3 on sm_50+).
  * ------------------------------------------------------------------------ */
 
 __host__ __device__ __forceinline__
@@ -100,11 +92,8 @@ void sha256_round_sched(const uint32_t a, const uint32_t b, const uint32_t c, ui
 }
 
 /* --------------------------------------------------------------------------
- * Transforms. `in` is the 16-word message block in host word order and is
- * consumed (overwritten by the rolling schedule); `state` is updated in
- * place with the feed-forward. `k` is the round-constant table: pass
- * h_sha256_K on the host, c_sha256_K (or a staged shared-memory copy) on the
- * device.
+ * Transforms. `in` (16 words, host order) is overwritten, `state` is updated
+ * in place. `k`: h_sha256_K on the host, c_sha256_K on the device.
  * ------------------------------------------------------------------------ */
 
 __host__ __device__ static inline
@@ -166,14 +155,8 @@ void sha256_transform_full(uint32_t *in, uint32_t *state, const uint32_t *k)
 	state[7] += h;
 }
 
-/* Truncated final transform: computes only state[6] and state[7] (the two
- * most significant hash words after the byte swap), eliding rounds 62/63,
- * whose results feed no earlier register in that lineage.
- *
- * ONLY legal where the hash output is compared directly against a target;
- * the other six state words are NOT updated and
- * the digest must never feed another hash stage, the CPU-verify path, or
- * share submission -- the hit path recomputes the full hash on the CPU. */
+/* Truncated final transform: only state[6] and state[7] are valid (rounds
+ * 62/63 skipped). For target checks only, never as a digest. */
 __host__ __device__ static inline
 void sha256_final_to_target(uint32_t *in, uint32_t *state, const uint32_t *k)
 {
@@ -242,12 +225,9 @@ void sha256_final_to_target(uint32_t *in, uint32_t *state, const uint32_t *k)
 	state[7] += h;
 }
 
-/* Resume an 80-byte-header block-2 transform at round 4, from
- * sha256_prehash_split_host() state (nsplit == 3: words 0..2 constant, word 3
- * = nonce) and sha256_preextend_w3_host() schedule constants. `in[4..15]`
- * must hold the padding words; in[0..3] are never read (the ring assigns
- * w16..w19 before their first use). `ms` is the block input state for the
- * feed-forward; `out` receives the full digest (KlausT-style prehash). */
+/* Block 2 of an 80-byte header resumed at round 4, from
+ * sha256_prehash_split_host(nsplit 3) and sha256_preextend_w3_host().
+ * in[4..15] hold the padding, `ms` is the input state, `out` the digest. */
 __device__ static inline
 void sha256_transform_80_from_pre4(uint32_t *in, const uint32_t *pre, const uint32_t *wx,
 	const uint32_t nonce, const uint32_t *ms, uint32_t *out, const uint32_t *k)
@@ -343,12 +323,9 @@ static inline void sha256_midstate_host(const uint32_t *data16, uint32_t midstat
 	sha256_transform_full(in, midstate, h_sha256_K);
 }
 
-/* State after the first `nsplit` rounds of a block whose words 0..nsplit-1
- * are per-job constants and whose word `nsplit` is the nonce, with round
- * `nsplit` split into its constant parts (KlausT prehash): pre[0] = T1c+T2c
- * (a minus nonce), pre[4] = d+T1c (e minus nonce), the other slots hold the
- * shifted round-`nsplit` state. The device resumes at round nsplit+1 after
- * adding the nonce to pre[0]/pre[4]. */
+/* State after `nsplit` constant rounds, with round `nsplit` (word = nonce)
+ * split into constant parts: pre[0] = a - nonce, pre[4] = e - nonce. The
+ * device adds the nonce and resumes at round nsplit+1. */
 static inline void sha256_prehash_split_host(const uint32_t midstate[8], const uint32_t *w,
 	const int nsplit, uint32_t pre[8])
 {
@@ -371,10 +348,8 @@ static inline void sha256_prehash_split_host(const uint32_t midstate[8], const u
 	pre[7] = g;
 }
 
-/* Schedule words 16..19 of a block whose word 3 is the nonce, precomputed up
- * to their nonce terms: wx[0]/wx[1] are complete (w16/w17), the device adds
- * ssg0(nonce) to wx[2] (-> w18) and the nonce to wx[3] (-> w19). `w` is the
- * 16-word block template; the nonce slot w[3] is not read. */
+/* Schedule words 16..19 without their nonce terms (word 3 = nonce): wx[0],
+ * wx[1] complete; the device adds ssg0(nonce) to wx[2] and nonce to wx[3]. */
 static inline void sha256_preextend_w3_host(const uint32_t *w, uint32_t wx[4])
 {
 	wx[0] = w[0] + sha256_ssg0(w[1]) + w[9]  + sha256_ssg1(w[14]);

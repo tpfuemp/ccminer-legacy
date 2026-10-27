@@ -692,6 +692,10 @@ int cuda_available_memory(int thr_id);
 uint32_t cuda_default_throughput(int thr_id, uint32_t defcount);
 #define device_intensity(t,f,d) cuda_default_throughput(t,d)
 double throughput2intensity(uint32_t throughput);
+uint32_t throughput_time_cap(uint32_t throughput, double hashrate, double max_sec);
+uint32_t throughput_mem_cap(uint32_t throughput, size_t bytes_per_thread, size_t avail_bytes);
+uint32_t cuda_mem_throughput_cap(int thr_id, uint32_t throughput, size_t bytes_per_thread, size_t fixed_bytes);
+void cuda_check_launch_time(int thr_id, double hashrate);
 
 void cuda_log_lasterror(int thr_id, const char* func, int line);
 void cuda_clear_lasterror();
@@ -1063,6 +1067,7 @@ void applog_hash64(void *hash);
 void applog_compare_hash(void *hash, void *hash_ref);
 
 void print_hash_tests(void);
+int run_test_vectors(void);
 void allium_hash(void *output, const void *input);
 void heavyhash_hash(void *output, const void *input);
 void bastionhash(void* output, const unsigned char* input);

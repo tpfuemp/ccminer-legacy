@@ -22,6 +22,8 @@
       <AdditionalIncludeDirectories>$(CommonIncludes);$(CudaToolkitIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <!-- per-folder objects: every algo has a register.cpp -->
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -35,6 +37,7 @@
       <Include>$(CommonIncludes)</Include>
       <PtxAsOptionV>false</PtxAsOptionV>
       <CInterleavedPTX>false</CInterleavedPTX>
+      <CompileOut>$(IntDir)%(RelativeDir)%(Filename)%(Extension).obj</CompileOut>
     </CudaCompile>
     <CudaLink>
       <PerformDeviceLink>false</PerformDeviceLink>
@@ -97,6 +100,7 @@
     <ClCompile Include="core\sha256.c" />
     <ClCompile Include="core\stats.cpp" />
     <ClCompile Include="core\sysinfos.cpp" />
+    <ClCompile Include="core\test_vectors.cpp" />
     <ClCompile Include="core\util.cpp" />
     <ClInclude Include="core\algo_registry.h" />
     <ClInclude Include="core\algos.h" />
@@ -135,9 +139,20 @@
     drop the unreferenced ALGO_REGISTER objects and the algo would be missing.
   -->
   <ItemGroup>
+    <ClInclude Include="cuda\cuda_compat.h" />
     <ClInclude Include="cuda\cuda_helper.h" />
     <None Include="cuda\selftest_gate.cuh" />
     <None Include="cuda\sha256_device.cuh" />
+  </ItemGroup>
+  <!-- sph: CPU reference hashes shared by the algos -->
+  <ItemGroup>
+    <ClCompile Include="sph\blake.c" />
+    <ClCompile Include="sph\keccak.c" />
+    <ClCompile Include="sph\skein.c" />
+    <ClInclude Include="sph\sph_blake.h" />
+    <ClInclude Include="sph\sph_keccak.h" />
+    <ClInclude Include="sph\sph_skein.h" />
+    <ClInclude Include="sph\sph_types.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\common\cuda_checkhash.cu" />
@@ -147,6 +162,23 @@
     <CudaCompile Include="algos\sha256d\cuda_sha256d.cu" />
     <CudaCompile Include="algos\sha256d\sha256d.cu" />
     <ClCompile Include="algos\sha256d\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\blake\blake256.cu" />
+    <CudaCompile Include="algos\blake\cuda_blake_selftest.cu" />
+    <ClCompile Include="algos\blake\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\keccak\cuda_keccak256.cu" />
+    <CudaCompile Include="algos\keccak\cuda_keccak_selftest.cu" />
+    <CudaCompile Include="algos\keccak\keccak256.cu" />
+    <ClCompile Include="algos\keccak\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\skein\cuda_skeincoin.cu" />
+    <CudaCompile Include="algos\skein\cuda_skein_selftest.cu" />
+    <CudaCompile Include="algos\skein\skein.cu" />
+    <ClCompile Include="algos\skein\register.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\ccminer.ico" />
