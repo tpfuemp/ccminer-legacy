@@ -10,12 +10,14 @@
 #   docker run --rm --gpus all -v "$PWD:/src" -w /src \
 #       ccminer-legacy-build build-linux/cuda8/ccminer -a sha256d --benchmark
 #
-# The binary links the Ubuntu 16.04 curl/OpenSSL 1.0 libraries, so run it in
-# this image (NVIDIA Container Toolkit provides the host driver).
+# The default build links the Ubuntu 16.04 curl/OpenSSL 1.0 libraries, so run
+# it in this image (NVIDIA Container Toolkit provides the host driver). For a
+# binary that runs on any newer distribution:
+#   ./build.sh --with-static-deps=/opt/ccminer-deps
 FROM ubuntu:16.04
 
-COPY provision.sh /tmp/provision.sh
-RUN sh /tmp/provision.sh && rm /tmp/provision.sh
+COPY provision.sh build-deps.sh /tmp/
+RUN sh /tmp/provision.sh && rm /tmp/provision.sh /tmp/build-deps.sh /tmp/*.tar.gz
 
 ENV PATH=/usr/local/cuda/bin:$PATH \
     NVIDIA_VISIBLE_DEVICES=all \

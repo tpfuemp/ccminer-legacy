@@ -2,10 +2,13 @@
 # Install the Linux build toolchain on Ubuntu 16.04: GCC 5.4, autotools, the
 # curl/OpenSSL/zlib headers and the CUDA 8.0 and 10.1 toolkits (both accept
 # GCC 5; the 10.1 installer needs libxml2). /usr/local/cuda points to 8.0.
+# build-deps.sh (next to this script) adds static curl/OpenSSL/zlib in
+# /opt/ccminer-deps for release builds.
 # Used by docker/Dockerfile; also works as root on a plain Ubuntu 16.04 VM or
 # WSL distro. Toolkits already installed are skipped, runfiles already in /tmp
 # are not downloaded again.
 set -e
+HERE=$(cd "$(dirname "$0")" && pwd)
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
@@ -32,3 +35,6 @@ install_cuda 10.1 cuda_10.1.105_418.39_linux.run \
 	https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.105_418.39_linux.run \
 	33ac60685a3e29538db5094259ea85c15906cbd0f74368733f4111eab6187c8f
 ln -sfn /usr/local/cuda-8.0 /usr/local/cuda
+
+# static curl/OpenSSL/zlib for release builds (configure --with-static-deps)
+[ -x /opt/ccminer-deps/bin/curl-config ] || sh "$HERE/build-deps.sh" /opt/ccminer-deps

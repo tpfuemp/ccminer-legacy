@@ -133,8 +133,18 @@ or `build-linux/cuda10/ccminer`. Its arguments go to `configure`:
   GCC is too new for the toolkit (CUDA 8 needs GCC 5 or older, CUDA 10.1 GCC 8
   or older), e.g. `--with-nvcc-ccbin=g++-5`. Use the same version for `CXX`.
 
-The binary links the distribution's curl and OpenSSL 1.0 libraries, so run it
-where it was built. With the Docker image and the NVIDIA Container Toolkit:
+- `--with-static-deps=PREFIX`: link curl, OpenSSL and zlib statically from
+  PREFIX, plus the C++ runtime. The binary then needs only glibc 2.17 or newer
+  and the NVIDIA driver, as the release binaries do. `docker/build-deps.sh`
+  builds the libraries (the same versions as for Windows, see
+  `compat/BUILD-DEPS.txt`); the Docker image has them in `/opt/ccminer-deps`:
+
+      docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/src" -w /src \
+          ccminer-legacy-build ./build.sh --with-static-deps=/opt/ccminer-deps
+
+Without it the binary links the distribution's curl and OpenSSL 1.0 libraries,
+so run it where it was built. With the Docker image and the NVIDIA Container
+Toolkit:
 
     docker run --rm --gpus all -v "$PWD:/src" -w /src \
         ccminer-legacy-build build-linux/cuda8/ccminer -a sha256d --benchmark

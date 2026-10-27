@@ -37,3 +37,6 @@ Headers under curl-for-windows/{curl/include,openssl,zlib} come from the same
 builds (openssl/opensslconf.h is the generated one).
 
 nvapi/amd64/nvapi64.lib is NVIDIA's NVAPI SDK library, used unchanged.
+
+Linux release builds link the same zlib, OpenSSL and curl versions statically;
+docker/build-deps.sh downloads, checks and builds them.

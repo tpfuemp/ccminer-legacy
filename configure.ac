@@ -47,9 +47,27 @@ AC_CHECK_LIB(jansson, json_loads, request_jansson=false, request_jansson=true)
 AC_CHECK_LIB([pthread], [pthread_create], PTHREAD_LIBS="-lpthread",
   [AC_MSG_ERROR([pthread library required])])
 
+dnl Static curl/OpenSSL/zlib from docker/build-deps.sh, for a binary that runs
+dnl on any newer distribution (glibc stays dynamic).
+AC_ARG_WITH([static-deps],
+  [AS_HELP_STRING([--with-static-deps=PREFIX], [link static curl, OpenSSL and zlib from PREFIX (docker/build-deps.sh) and the C++ runtime])],
+  [], [with_static_deps=no])
+STATIC_DEP_LIBS=""
+AS_CASE([$with_static_deps],
+  [no], [],
+  [yes|""], [AC_MSG_ERROR([--with-static-deps needs the prefix, e.g. --with-static-deps=/opt/ccminer-deps])],
+  [AS_IF([test -x "$with_static_deps/bin/curl-config"], [],
+     [AC_MSG_ERROR([no curl-config in $with_static_deps/bin, run docker/build-deps.sh first])])
+   CPPFLAGS="-I$with_static_deps/include $CPPFLAGS"
+   LDFLAGS="-L$with_static_deps/lib -static-libstdc++ -static-libgcc $LDFLAGS"
+   PATH="$with_static_deps/bin:$PATH"
+   STATIC_DEP_LIBS="-ldl -lpthread"
+   AC_MSG_NOTICE([static dependencies from $with_static_deps])])
+
 AC_CHECK_LIB([z],[gzopen], [], [])
-AC_CHECK_LIB([ssl],[SSL_free], [], [AC_MSG_ERROR([OpenSSL library required])])
-AC_CHECK_LIB([crypto],[EVP_DigestFinal_ex], [], [AC_MSG_ERROR([OpenSSL library required])])
+AC_CHECK_LIB([ssl],[SSL_free], [], [AC_MSG_ERROR([OpenSSL library required])], [-lcrypto $STATIC_DEP_LIBS])
+AC_CHECK_LIB([crypto],[EVP_DigestFinal_ex], [], [AC_MSG_ERROR([OpenSSL library required])], [$STATIC_DEP_LIBS])
+LIBS="$LIBS $STATIC_DEP_LIBS"
 
 AM_CONDITIONAL([WANT_JANSSON], [test x$request_jansson = xtrue])
 
