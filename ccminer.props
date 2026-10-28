@@ -147,9 +147,11 @@
   <!-- sph: CPU reference hashes shared by the algos -->
   <ItemGroup>
     <ClCompile Include="sph\blake.c" />
+    <ClCompile Include="sph\groestl.c" />
     <ClCompile Include="sph\keccak.c" />
     <ClCompile Include="sph\skein.c" />
     <ClInclude Include="sph\sph_blake.h" />
+    <ClInclude Include="sph\sph_groestl.h" />
     <ClInclude Include="sph\sph_keccak.h" />
     <ClInclude Include="sph\sph_skein.h" />
     <ClInclude Include="sph\sph_types.h" />
@@ -167,6 +169,22 @@
     <CudaCompile Include="algos\blake\blake256.cu" />
     <CudaCompile Include="algos\blake\cuda_blake_selftest.cu" />
     <ClCompile Include="algos\blake\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\blake2s\blake2s.cu" />
+    <CudaCompile Include="algos\blake2s\cuda_blake2s_selftest.cu" />
+    <ClCompile Include="algos\blake2s\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="algos\groestl\groestlcoin.cpp" />
+    <CudaCompile Include="algos\groestl\cuda_groestlcoin.cu" />
+    <ClCompile Include="algos\groestl\myriadgroestl.cpp" />
+    <CudaCompile Include="algos\groestl\cuda_myriadgroestl.cu" />
+    <CudaCompile Include="algos\groestl\cuda_groestl_selftest.cu" />
+    <ClCompile Include="algos\groestl\register.cpp" />
+    <ClInclude Include="algos\groestl\cuda_groestlcoin.h" />
+    <ClInclude Include="algos\groestl\groestl_functions_quad.h" />
+    <ClInclude Include="algos\groestl\groestl_transf_quad.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\keccak\cuda_keccak256.cu" />

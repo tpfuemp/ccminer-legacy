@@ -52,9 +52,13 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `-a` name | Coin / description |
 |---|---|
 | `blake` | Blake-256, 14 rounds (Saffroncoin) |
+| `blake2s` | BLAKE2s-256 (Nevacoin) |
 | `blakecoin` | Blake-256, 8 rounds (Blakecoin) |
+| `dmd-gr` | Double Groestl-512 (Diamond), same as `groestl` |
+| `groestl` | Double Groestl-512 (Groestlcoin) |
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
+| `myr-gr` | Groestl-512 + SHA256 (Myriad) |
 | `sha256d` | SHA256d (Bitcoin) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
 
@@ -73,10 +77,16 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | sha256d | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1687 MH/s | 1856 MH/s |
 | blake | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 123.6 MH/s (PTX JIT) | 126.1 MH/s |
 | blake | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 4059 MH/s | 4164 MH/s |
+| blake2s | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 230.4 MH/s (PTX JIT) | 230.9 MH/s |
+| blake2s | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 6557 MH/s | 7047 MH/s |
 | blakecoin | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 227.8 MH/s (PTX JIT) | 227.6 MH/s |
 | blakecoin | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 7255 MH/s | 7484 MH/s |
+| myr-gr | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 3.12 MH/s (PTX JIT) | 3.15 MH/s |
+| myr-gr | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 114.0 MH/s | 117.1 MH/s |
 | skein | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 22.2 MH/s (PTX JIT) | 22.6 MH/s |
 | skein | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 579 MH/s | 653 MH/s |
+| groestl | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.80 MH/s (PTX JIT) | 1.76 MH/s |
+| groestl | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 58.5 MH/s | 59.3 MH/s |
 | keccak | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 21.3 MH/s (PTX JIT) | 21.8 MH/s |
 | keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
 
