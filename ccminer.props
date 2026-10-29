@@ -141,16 +141,19 @@
   <ItemGroup>
     <ClInclude Include="cuda\cuda_compat.h" />
     <ClInclude Include="cuda\cuda_helper.h" />
+    <None Include="cuda\blake3_device.cuh" />
     <None Include="cuda\selftest_gate.cuh" />
     <None Include="cuda\sha256_device.cuh" />
   </ItemGroup>
   <!-- sph: CPU reference hashes shared by the algos -->
   <ItemGroup>
     <ClCompile Include="sph\blake.c" />
+    <ClCompile Include="sph\bmw.c" />
     <ClCompile Include="sph\groestl.c" />
     <ClCompile Include="sph\keccak.c" />
     <ClCompile Include="sph\skein.c" />
     <ClInclude Include="sph\sph_blake.h" />
+    <ClInclude Include="sph\sph_bmw.h" />
     <ClInclude Include="sph\sph_groestl.h" />
     <ClInclude Include="sph\sph_keccak.h" />
     <ClInclude Include="sph\sph_skein.h" />
@@ -174,6 +177,17 @@
     <CudaCompile Include="algos\blake2s\blake2s.cu" />
     <CudaCompile Include="algos\blake2s\cuda_blake2s_selftest.cu" />
     <ClCompile Include="algos\blake2s\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\bmw512\bmw512.cu" />
+    <CudaCompile Include="algos\bmw512\cuda_bmw512.cu" />
+    <CudaCompile Include="algos\bmw512\cuda_bmw512_selftest.cu" />
+    <ClCompile Include="algos\bmw512\register.cpp" />
+    <ClInclude Include="algos\bmw512\bmw512.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\decred\decred_blake3.cu" />
+    <ClCompile Include="algos\decred\register.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="algos\groestl\groestlcoin.cpp" />

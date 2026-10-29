@@ -25,9 +25,10 @@ ccminer_SOURCES = \
 	core/miner.h core/nvapi.cpp core/nvml.cpp core/nvml.h core/nvsettings.cpp \
 	core/pools.cpp core/serialize.hpp core/sha256.c core/stats.cpp \
 	core/sysinfos.cpp core/test_vectors.cpp core/uint256.h core/util.cpp \
-	cuda/cuda_compat.h cuda/cuda_helper.h cuda/selftest_gate.cuh cuda/sha256_device.cuh \
-	sph/blake.c sph/groestl.c sph/keccak.c sph/skein.c sph/sph_blake.h \
-	sph/sph_groestl.h sph/sph_keccak.h sph/sph_skein.h sph/sph_types.h
+	cuda/blake3_device.cuh cuda/cuda_compat.h cuda/cuda_helper.h cuda/selftest_gate.cuh \
+	cuda/sha256_device.cuh \
+	sph/blake.c sph/bmw.c sph/groestl.c sph/keccak.c sph/skein.c sph/sph_blake.h \
+	sph/sph_bmw.h sph/sph_groestl.h sph/sph_keccak.h sph/sph_skein.h sph/sph_types.h
 
 # WITH_* switches of the ported algos, added by their algo.mk
 ALGO_DEFINES =
@@ -35,6 +36,8 @@ ALGO_DEFINES =
 include $(srcdir)/algos/common/algo.mk
 include $(srcdir)/algos/blake/algo.mk
 include $(srcdir)/algos/blake2s/algo.mk
+include $(srcdir)/algos/bmw512/algo.mk
+include $(srcdir)/algos/decred/algo.mk
 include $(srcdir)/algos/groestl/algo.mk
 include $(srcdir)/algos/sha256d/algo.mk
 include $(srcdir)/algos/keccak/algo.mk

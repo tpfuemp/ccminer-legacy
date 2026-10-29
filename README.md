@@ -54,6 +54,8 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `blake` | Blake-256, 14 rounds (Saffroncoin) |
 | `blake2s` | BLAKE2s-256 (Nevacoin) |
 | `blakecoin` | Blake-256, 8 rounds (Blakecoin) |
+| `bmw512` | BMW-512, truncated to 256 bits |
+| `decred` | BLAKE3-256 over the 180-byte header (Decred, DCP-0011) |
 | `dmd-gr` | Double Groestl-512 (Diamond), same as `groestl` |
 | `groestl` | Double Groestl-512 (Groestlcoin) |
 | `keccak` | Keccak-256 (Maxcoin) |
@@ -81,6 +83,10 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | blake2s | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 6557 MH/s | 7047 MH/s |
 | blakecoin | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 227.8 MH/s (PTX JIT) | 227.6 MH/s |
 | blakecoin | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 7255 MH/s | 7484 MH/s |
+| bmw512 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 30.4 MH/s (PTX JIT) | 30.4 MH/s |
+| bmw512 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1451 MH/s | 1492 MH/s |
+| decred | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 247.2 MH/s (PTX JIT) | 246.2 MH/s |
+| decred | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 7295 MH/s | 8411 MH/s |
 | myr-gr | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 3.12 MH/s (PTX JIT) | 3.15 MH/s |
 | myr-gr | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 114.0 MH/s | 117.1 MH/s |
 | skein | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 22.2 MH/s (PTX JIT) | 22.6 MH/s |

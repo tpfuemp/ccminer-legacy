@@ -16,14 +16,14 @@ struct work;
 typedef int  (*algo_scanhash_fn)(int thr_id, struct work *work, uint32_t max_nonce, unsigned long *hashes_done);
 /* releases the thread's device memory; must be safe on an uninitialized thread */
 typedef void (*algo_free_fn)(int thr_id);
-/* CPU reference hash of an 80-byte header into 32 bytes, for --cputest */
+/* CPU reference hash of a block header (80 bytes, decred 180) into 32 bytes */
 typedef void (*algo_cpu_hash_fn)(void *output, const void *input);
 
 struct algo_desc {
 	enum sha_algos id;
 	algo_scanhash_fn scanhash;
 	algo_free_fn free;
-	algo_cpu_hash_fn cpu_hash; /* NULL if the algo has no 80-byte CPU hash */
+	algo_cpu_hash_fn cpu_hash; /* NULL if the algo has no CPU hash */
 	const char *help;          /* one line for --help */
 };
 
@@ -44,8 +44,9 @@ struct algo_registrar {
 	static struct algo_registrar algo_registrar_##id(&algo_desc_##id)
 
 /*
- * Known-answer vectors for --test-vectors: `header` is an 80-byte header in
- * hex whose nonce (bytes 76..79) is a solution, `hash` its cpu_hash() output.
+ * Known-answer vectors for --test-vectors: `header` is a block header in hex
+ * (80 bytes, nonce at 76; decred 180, nonce at 140) whose nonce is a solution,
+ * `hash` its cpu_hash() output.
  */
 struct algo_test_vector {
 	const char *header;
