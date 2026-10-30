@@ -28,9 +28,11 @@ ccminer_SOURCES = \
 	core/sysinfos.cpp core/test_vectors.cpp core/uint256.h core/util.cpp \
 	cuda/blake3_device.cuh cuda/cuda_compat.h cuda/cuda_helper.h cuda/selftest_gate.cuh \
 	cuda/sha256_device.cuh \
-	sph/blake.c sph/bmw.c sph/echo.c sph/groestl.c sph/jh.c sph/keccak.c sph/skein.c \
-	sph/whirlpool.c sph/sph_blake.h sph/sph_bmw.h sph/sph_echo.h sph/sph_groestl.h \
-	sph/sph_jh.h sph/sph_keccak.h sph/sph_skein.h sph/sph_types.h sph/sph_whirlpool.h
+	sph/blake.c sph/bmw.c sph/cubehash.c sph/echo.c sph/groestl.c sph/jh.c sph/keccak.c \
+	sph/luffa.c sph/shavite.c sph/simd.c sph/skein.c sph/whirlpool.c \
+	sph/sph_blake.h sph/sph_bmw.h sph/sph_cubehash.h sph/sph_echo.h sph/sph_groestl.h \
+	sph/sph_jh.h sph/sph_keccak.h sph/sph_luffa.h sph/sph_shavite.h sph/sph_simd.h \
+	sph/sph_skein.h sph/sph_types.h sph/sph_whirlpool.h
 
 # included by sph sources, not compiled on its own
 EXTRA_ccminer_SOURCES = sph/aes_helper.c sph/md_helper.c
@@ -44,6 +46,7 @@ include $(srcdir)/algos/blake2s/algo.mk
 include $(srcdir)/algos/bmw512/algo.mk
 include $(srcdir)/algos/decred/algo.mk
 include $(srcdir)/algos/groestl/algo.mk
+include $(srcdir)/algos/qubit/algo.mk
 include $(srcdir)/algos/sha256d/algo.mk
 include $(srcdir)/algos/keccak/algo.mk
 include $(srcdir)/algos/skein/algo.mk

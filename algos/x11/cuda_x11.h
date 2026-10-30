@@ -15,6 +15,17 @@ void jh512_cuda_hash_80(const int thr_id, const uint32_t threads, const uint32_t
 void quark_keccak512_cpu_init(int thr_id, uint32_t threads);
 void quark_keccak512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
 
+void x11_cubehash512_cpu_init(int thr_id, uint32_t threads);
+void x11_cubehash512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
+
+void x11_shavite512_cpu_init(int thr_id, uint32_t threads);
+void x11_shavite512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
+
+/* d_hash must hold threads rounded up to 128 states, see x11_simd512_gpu_expand_64 */
+int  x11_simd512_cpu_init(int thr_id, uint32_t threads);
+void x11_simd512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
+void x11_simd512_cpu_free(int thr_id);
+
 void x11_echo512_cpu_init(int thr_id, uint32_t threads);
 void x11_echo512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
 

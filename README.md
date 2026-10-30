@@ -61,6 +61,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
 | `myr-gr` | Groestl-512 + SHA256 (Myriad) |
+| `qubit` | Luffa + CubeHash + SHAvite + SIMD + ECHO, 512 bits each (Qubit) |
 | `sha256d` | SHA256d (Bitcoin) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
 | `tribus` | JH-512 + Keccak-512 + ECHO-512 (Denarius) |
