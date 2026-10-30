@@ -35,7 +35,7 @@ extern "C" int scanhash_keccak256(int thr_id, struct work* work, uint32_t max_no
 	const uint32_t first_nonce = pdata[19];
 	const int dev_id = device_map[thr_id];
 
-	// Kepler: about 0.2 s per launch on a 660M, well below the 2 s WDDM TDR
+	// Kepler: smaller batches keep one launch well below the 2 s WDDM TDR
 	const uint32_t defcount = (device_sm[dev_id] < 500) ? (1U << 22) : (1U << 25);
 	uint32_t throughput = cuda_default_throughput(thr_id, defcount);
 	if (init[thr_id]) throughput = min(throughput, max_nonce - first_nonce);

@@ -2081,15 +2081,8 @@ static bool stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 			break;
 		case ALGO_GHOSTRIDER:
 		case ALGO_MIKE:
-			// GhostRider/Raptoreum: hash difficulty carries a 2^16 factor
-			// (cpuminer-opt opt_target_factor = 65536). Verify on live pool.
-			// mike (VKAX/FortuneBlock) shares it: VKAX's powLimit is
-			// byte-identical to Raptoreum's, and the CPU port confirmed the
-			// convention live at two stratum difficulties.
 		case ALGO_HOOHASH:
-			// hoohash (PEPEPOW) uses the same 2^16 factor as its own reference
-			// miner. Without it the pool target lands harder than the network
-			// target and the miner submits almost nothing.
+			// these pools scale the share difficulty by 2^16
 			work_set_target(work, sctx->job.diff / (65536.0 * opt_difficulty));
 			break;
 		case ALGO_KECCAK:
@@ -2106,11 +2099,8 @@ static bool stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 		case ALGO_EVRPROGPOW:
 		case ALGO_FIROPOW:
 		case ALGO_MERAKI:
-			// Pool sends the 256-bit share target directly (MSB-first bytes);
-			// mirror it into work->target (LE words, target[7] = MSW). scanhash
-			// compares against work->kawpow_target. targetdiff is the pool's
-			// share difficulty (set_difficulty), consistent with that target, so
-			// bn_set_target_ratio yields a real share diff for --show-diff.
+			// the pool sends the 256-bit target (MSB-first bytes), mirror it
+			// into work->target (LE words, target[7] = MSW)
 			for (i = 0; i < 8; i++)
 				work->target[7 - i] = be32dec(work->kawpow_target + 4 * i);
 			// Derive the share difficulty from the 256-bit target itself (these

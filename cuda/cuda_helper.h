@@ -351,7 +351,7 @@ uint32_t shl_t32(uint32_t x,uint32_t n) {
 
 // 64-bit ROTATE RIGHT
 #if __CUDA_ARCH__ >= 320 && USE_ROT_ASM_OPT == 1
-/* complicated sm >= 3.5 one (with Funnel Shifter beschleunigt), to bench */
+/* sm >= 3.5: funnel shifter */
 __device__ __forceinline__
 uint64_t ROTR64(const uint64_t value, const int offset) {
 	uint2 result;

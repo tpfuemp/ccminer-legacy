@@ -152,12 +152,15 @@
     <ClCompile Include="sph\groestl.c" />
     <ClCompile Include="sph\keccak.c" />
     <ClCompile Include="sph\skein.c" />
+    <ClCompile Include="sph\whirlpool.c" />
+    <None Include="sph\md_helper.c" />
     <ClInclude Include="sph\sph_blake.h" />
     <ClInclude Include="sph\sph_bmw.h" />
     <ClInclude Include="sph\sph_groestl.h" />
     <ClInclude Include="sph\sph_keccak.h" />
     <ClInclude Include="sph\sph_skein.h" />
     <ClInclude Include="sph\sph_types.h" />
+    <ClInclude Include="sph\sph_whirlpool.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\common\cuda_checkhash.cu" />
@@ -211,6 +214,14 @@
     <CudaCompile Include="algos\skein\cuda_skein_selftest.cu" />
     <CudaCompile Include="algos\skein\skein.cu" />
     <ClCompile Include="algos\skein\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\whirlpool\whirlpool.cu" />
+    <CudaCompile Include="algos\whirlpool\cuda_whirlpool.cu" />
+    <CudaCompile Include="algos\whirlpool\cuda_whirlpool_selftest.cu" />
+    <ClCompile Include="algos\whirlpool\register.cpp" />
+    <ClInclude Include="algos\whirlpool\whirlpool.h" />
+    <None Include="algos\whirlpool\cuda_whirlpool_tables.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\ccminer.ico" />

@@ -63,6 +63,8 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `myr-gr` | Groestl-512 + SHA256 (Myriad) |
 | `sha256d` | SHA256d (Bitcoin) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
+| `whirlcoin` | 4x Whirlpool-T (Whirlcoin), same as `whirlpool` |
+| `whirlpool` | 4x Whirlpool-T (old whirlpool) |
 
 Run `ccminer --help` for the authoritative list.
 
@@ -93,6 +95,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | skein | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 579 MH/s | 653 MH/s |
 | groestl | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.80 MH/s (PTX JIT) | 1.76 MH/s |
 | groestl | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 58.5 MH/s | 59.3 MH/s |
+| whirlpool | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.664 MH/s (PTX JIT) | 0.657 MH/s |
+| whirlpool | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 76.2 MH/s | 78.0 MH/s |
 | keccak | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 21.3 MH/s (PTX JIT) | 21.8 MH/s |
 | keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
 

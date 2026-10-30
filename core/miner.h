@@ -838,16 +838,8 @@ struct tx {
 	uint32_t len;
 };
 
-/* Nonce slots one scanhash return can carry. 7 matches CHECKHASH_NONCES, the
- * device screen's retention, so the host can take every candidate it kept.
- *
- * Carrying fewer loses no shares -- a driver resumes just above the highest
- * nonce it returned, so the rest are re-found next pass -- but it re-hashes
- * that part of the batch.
- *
- * Raising this alone is inert: a driver must also fill the slots and relax its
- * resume threshold. The submit path in ccminer.cpp loops to MAX_NONCES.
- */
+/* nonce slots one scanhash return can carry, = CHECKHASH_NONCES; a driver
+ * resumes above the highest nonce it returned */
 #define MAX_NONCES 7
 struct work {
 	uint32_t data[48];

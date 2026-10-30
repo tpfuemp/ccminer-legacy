@@ -34,6 +34,7 @@ sed -n 's/.*<\(ClCompile\|CudaCompile\|ClInclude\|None\) Include="\([^"]*\)".*/\
 	ccminer.props | tr '\\' '/' | grep -v '^compat/' | sort -u > "$tmp/props"
 {
 	am_sources Makefile.am ccminer_SOURCES
+	am_sources Makefile.am EXTRA_ccminer_SOURCES
 	for mk in algos/*/algo.mk; do am_sources "$mk" ccminer_SOURCES; done
 } | sort -u > "$tmp/make"
 find core cuda sph algos -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.cu' \

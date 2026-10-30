@@ -359,7 +359,7 @@ int cuda_gpu_info(struct cgpu_info *gpu)
 	return -1;
 }
 
-// Zeitsynchronisations-Routine von cudaminer mit CPU sleep
+// stream sync with a CPU sleep (from cudaminer)
 // Note: if you disable all of these calls, CPU usage will hit 100%
 typedef struct { double value[8]; } tsumarray;
 cudaError_t MyStreamSynchronize(cudaStream_t stream, int situation, int thr_id)

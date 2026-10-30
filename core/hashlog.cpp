@@ -16,25 +16,6 @@
 #define LO_DWORD(u64) ((uint32_t) u64)
 #define MK_HI64(u32) (0x100000000ULL * u32)
 
-/* from miner.h
-struct hashlog_data {
-	uint8_t npool;
-	uint8_t pool_type;
-	uint8_t nonce_id;
-	uint8_t job_nonce_id;
-	uint32_t height;
-	double sharediff;
-	uint32_t njobid;
-	uint32_t nonce;
-	uint32_t scanned_from;
-	uint32_t scanned_to;
-	uint32_t last_from;
-	uint32_t tm_add;
-	uint32_t tm_upd;
-	uint32_t tm_sent;
-};
-*/
-
 static std::map<uint64_t, hashlog_data> tlastshares;
 
 #define LOG_PURGE_TIMEOUT 5*60

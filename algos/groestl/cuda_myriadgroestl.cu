@@ -225,7 +225,6 @@ void myriadgroestl_gpu_sha256(uint32_t *message)
 }
 
 __global__
-//__launch_bounds__(256, 6) // we want <= 40 regs
 void myriadgroestl_gpu_hash_sha(uint32_t threads, uint32_t startNounce, uint32_t *hashBuffer, uint32_t *resNonces)
 {
 #if __CUDA_ARCH__ >= 300
