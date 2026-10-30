@@ -149,14 +149,19 @@
   <ItemGroup>
     <ClCompile Include="sph\blake.c" />
     <ClCompile Include="sph\bmw.c" />
+    <ClCompile Include="sph\echo.c" />
     <ClCompile Include="sph\groestl.c" />
+    <ClCompile Include="sph\jh.c" />
     <ClCompile Include="sph\keccak.c" />
     <ClCompile Include="sph\skein.c" />
     <ClCompile Include="sph\whirlpool.c" />
+    <None Include="sph\aes_helper.c" />
     <None Include="sph\md_helper.c" />
     <ClInclude Include="sph\sph_blake.h" />
     <ClInclude Include="sph\sph_bmw.h" />
+    <ClInclude Include="sph\sph_echo.h" />
     <ClInclude Include="sph\sph_groestl.h" />
+    <ClInclude Include="sph\sph_jh.h" />
     <ClInclude Include="sph\sph_keccak.h" />
     <ClInclude Include="sph\sph_skein.h" />
     <ClInclude Include="sph\sph_types.h" />
@@ -216,12 +221,27 @@
     <ClCompile Include="algos\skein\register.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\tribus\tribus.cu" />
+    <CudaCompile Include="algos\tribus\cuda_tribus_echo512.cu" />
+    <CudaCompile Include="algos\tribus\cuda_tribus_selftest.cu" />
+    <ClCompile Include="algos\tribus\register.cpp" />
+    <ClInclude Include="algos\tribus\tribus.h" />
+    <None Include="algos\tribus\cuda_echo512_aes.cuh" />
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\whirlpool\whirlpool.cu" />
     <CudaCompile Include="algos\whirlpool\cuda_whirlpool.cu" />
     <CudaCompile Include="algos\whirlpool\cuda_whirlpool_selftest.cu" />
     <ClCompile Include="algos\whirlpool\register.cpp" />
     <ClInclude Include="algos\whirlpool\whirlpool.h" />
     <None Include="algos\whirlpool\cuda_whirlpool_tables.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\x11\cuda_jh512.cu" />
+    <CudaCompile Include="algos\x11\cuda_keccak512.cu" />
+    <CudaCompile Include="algos\x11\cuda_echo512.cu" />
+    <ClInclude Include="algos\x11\cuda_x11.h" />
+    <None Include="algos\x11\cuda_x11_aes.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\ccminer.ico" />
