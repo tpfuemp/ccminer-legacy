@@ -67,6 +67,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `tribus` | JH-512 + Keccak-512 + ECHO-512 (Denarius) |
 | `whirlcoin` | 4x Whirlpool-T (Whirlcoin), same as `whirlpool` |
 | `whirlpool` | 4x Whirlpool-T (old whirlpool) |
+| `x11` | X11, 11 chained 512-bit hashes (Dash) |
 
 Run `ccminer --help` for the authoritative list.
 
@@ -159,6 +160,14 @@ These build `x64\Release-cuda8-jit52\ccminer-cuda8.exe` and
 `compute_N,sm_N` pairs (`compute_N,compute_N` embeds PTX only). Common
 variants: `-sm30` (`compute_30,sm_30` / `30`), `-jit52` and `-jit35` (PTX
 only), `-fat` (every arch native plus PTX).
+
+`./build-tests.sh` builds the four Linux test variants (`cuda8`, `cuda10`,
+`cuda8-jit52`, `cuda8-jit35`, logs in `build-linux/logs/`), the two PTX-only
+ones in parallel. With `INCREMENTAL=1` (also for `build.sh`) an existing build
+directory is reused and only `make` runs. nvcc objects do not track header
+dependencies, so a full rebuild still happens when a header (`.h`, `.cuh`,
+`.hpp`) or build file changed since that directory's last build, or the
+`configure` arguments differ; the build prints which.
 
 In an existing Linux build directory, `make NVCC_ARCH=...` overrides the
 configured GPU code with raw nvcc flags, e.g.

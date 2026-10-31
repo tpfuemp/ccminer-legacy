@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClInclude Include="cuda\cuda_compat.h" />
     <ClInclude Include="cuda\cuda_helper.h" />
+    <ClInclude Include="cuda\cuda_vector_uint2x4.h" />
     <None Include="cuda\blake3_device.cuh" />
     <None Include="cuda\selftest_gate.cuh" />
     <None Include="cuda\sha256_device.cuh" />
@@ -252,6 +253,16 @@
     <None Include="algos\whirlpool\cuda_whirlpool_tables.cuh" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\x11\x11.cu" />
+    <CudaCompile Include="algos\x11\cuda_x11_selftest.cu" />
+    <ClCompile Include="algos\x11\register.cpp" />
+    <ClInclude Include="algos\x11\x11.h" />
+    <CudaCompile Include="algos\x11\cuda_blake512.cu" />
+    <CudaCompile Include="algos\x11\cuda_bmw512_64.cu" />
+    <CudaCompile Include="algos\x11\cuda_groestl512.cu" />
+    <CudaCompile Include="algos\x11\cuda_skein512.cu" />
+    <CudaCompile Include="algos\x11\cuda_luffa_cubehash512.cu" />
+    <None Include="algos\x11\cuda_blake512_sp.cuh" />
     <CudaCompile Include="algos\x11\cuda_jh512.cu" />
     <CudaCompile Include="algos\x11\cuda_keccak512.cu" />
     <CudaCompile Include="algos\x11\cuda_cubehash512.cu" />

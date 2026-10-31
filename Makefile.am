@@ -7,7 +7,7 @@ if WANT_JANSSON
 JANSSON_INCLUDES = -I$(top_srcdir)/compat/jansson
 endif
 
-EXTRA_DIST = autogen.sh build.sh check-sync.sh README.md BENCHMARKS.md \
+EXTRA_DIST = autogen.sh build.sh build-tests.sh check-sync.sh README.md BENCHMARKS.md \
 	     LICENSE.txt CREDITS.txt \
 	     ccminer.sln ccminer.props ccminer-cuda8.vcxproj ccminer-cuda10.vcxproj \
 	     docker/Dockerfile docker/provision.sh
@@ -26,8 +26,8 @@ ccminer_SOURCES = \
 	core/miner.h core/nvapi.cpp core/nvml.cpp core/nvml.h core/nvsettings.cpp \
 	core/pools.cpp core/serialize.hpp core/sha256.c core/stats.cpp \
 	core/sysinfos.cpp core/test_vectors.cpp core/uint256.h core/util.cpp \
-	cuda/blake3_device.cuh cuda/cuda_compat.h cuda/cuda_helper.h cuda/selftest_gate.cuh \
-	cuda/sha256_device.cuh \
+	cuda/blake3_device.cuh cuda/cuda_compat.h cuda/cuda_helper.h cuda/cuda_vector_uint2x4.h \
+	cuda/selftest_gate.cuh cuda/sha256_device.cuh \
 	sph/blake.c sph/bmw.c sph/cubehash.c sph/echo.c sph/groestl.c sph/jh.c sph/keccak.c \
 	sph/luffa.c sph/shavite.c sph/simd.c sph/skein.c sph/whirlpool.c \
 	sph/sph_blake.h sph/sph_bmw.h sph/sph_cubehash.h sph/sph_echo.h sph/sph_groestl.h \
