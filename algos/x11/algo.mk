@@ -7,5 +7,6 @@ ccminer_SOURCES += algos/x11/x11.cu algos/x11/cuda_x11_selftest.cu algos/x11/reg
 		   algos/x11/cuda_jh512.cu algos/x11/cuda_keccak512.cu \
 		   algos/x11/cuda_luffa_cubehash512.cu algos/x11/cuda_cubehash512.cu \
 		   algos/x11/cuda_shavite512.cu algos/x11/cuda_simd512.cu algos/x11/cuda_echo512.cu \
+		   algos/x11/cuda_hamsi512.cu algos/x11/cuda_fugue512.cu \
 		   algos/x11/cuda_x11.h algos/x11/cuda_x11_aes.cuh algos/x11/cuda_simd512_func.cuh \
 		   algos/x11/cuda_blake512_sp.cuh

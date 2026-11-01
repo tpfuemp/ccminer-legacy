@@ -61,6 +61,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
 | `myr-gr` | Groestl-512 + SHA256 (Myriad) |
+| `quark` | Quark, 9 steps of BLAKE/BMW/Groestl/JH/Keccak/Skein-512, 3 of them hash-dependent |
 | `qubit` | Luffa + CubeHash + SHAvite + SIMD + ECHO, 512 bits each (Qubit) |
 | `sha256d` | SHA256d (Bitcoin) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
@@ -68,6 +69,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `whirlcoin` | 4x Whirlpool-T (Whirlcoin), same as `whirlpool` |
 | `whirlpool` | 4x Whirlpool-T (old whirlpool) |
 | `x11` | X11, 11 chained 512-bit hashes (Dash) |
+| `x13` | X13, X11 + Hamsi + Fugue, 512 bits each |
 
 Run `ccminer --help` for the authoritative list.
 

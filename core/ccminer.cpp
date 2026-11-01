@@ -2862,7 +2862,6 @@ static void *miner_thread(void *userdata)
 			switch (opt_algo) {
 				case ALGO_ANIME:
 				case ALGO_JACKPOT:
-				case ALGO_QUARK:
 					// to stay comparable to other ccminer forks or pools
 					rate_factor = 0.5;
 					break;

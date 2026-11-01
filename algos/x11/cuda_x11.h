@@ -51,4 +51,11 @@ void x11_simd512_cpu_free(int thr_id);
 void x11_echo512_cpu_init(int thr_id, uint32_t threads);
 void x11_echo512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
 
+void x13_hamsi512_cpu_init(int thr_id, uint32_t threads);
+void x13_hamsi512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
+
+void x13_fugue512_cpu_init(int thr_id, uint32_t threads);
+void x13_fugue512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_nonceVector, uint32_t *d_hash, int order);
+void x13_fugue512_cpu_free(int thr_id);
+
 #endif

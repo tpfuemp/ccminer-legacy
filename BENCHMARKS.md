@@ -23,6 +23,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
 | myr-gr | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 3.12 MH/s (PTX JIT) | 3.15 MH/s |
 | myr-gr | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 114.0 MH/s | 117.1 MH/s |
+| quark | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.083 MH/s (PTX JIT) | 1.096 MH/s |
+| quark | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 45.0 MH/s | 46.7 MH/s |
 | qubit | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.22 MH/s (PTX JIT) | 1.22 MH/s |
 | qubit | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 33.0 MH/s | 31.9 MH/s |
 | sha256d | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 46.7 MH/s (PTX JIT) | 46.5 MH/s |
@@ -35,5 +37,7 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | whirlpool | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 76.2 MH/s | 78.0 MH/s |
 | x11 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.680 MH/s (PTX JIT) | 0.683 MH/s |
 | x11 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 22.5 MH/s | 22.3 MH/s |
+| x13 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.511 MH/s (PTX JIT) | 0.518 MH/s |
+| x13 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 17.8 MH/s | 17.9 MH/s |
 
 Maxwell (`sm_50`, `sm_52`) is untested so far; reports are welcome.
