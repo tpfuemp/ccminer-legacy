@@ -7,6 +7,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 
 | Algorithm | GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
 |---|---|---|---|---|---|
+| allium | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 133.4 kH/s (PTX JIT) | 131.1 kH/s |
+| allium | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 5.90 MH/s | 6.89 MH/s |
 | blake | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 123.6 MH/s (PTX JIT) | 126.1 MH/s |
 | blake | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 4059 MH/s | 4164 MH/s |
 | blake2s | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 230.4 MH/s (PTX JIT) | 230.9 MH/s |

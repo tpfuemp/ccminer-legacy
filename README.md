@@ -51,6 +51,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 
 | `-a` name | Coin / description |
 |---|---|
+| `allium` | BLAKE-256, Keccak-256, Lyra2, CubeHash-256, Lyra2, Skein-256, Groestl-256 (Garlicoin) |
 | `blake` | Blake-256, 14 rounds (Saffroncoin) |
 | `blake2s` | BLAKE2s-256 (Nevacoin) |
 | `blakecoin` | Blake-256, 8 rounds (Blakecoin) |

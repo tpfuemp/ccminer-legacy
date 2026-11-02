@@ -191,6 +191,27 @@
     <ClCompile Include="algos\sha256d\register.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\allium\allium.cu" />
+    <CudaCompile Include="algos\allium\cuda_allium_selftest.cu" />
+    <ClCompile Include="algos\allium\register.cpp" />
+    <ClInclude Include="algos\allium\allium.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="algos\lyra2\Lyra2.c" />
+    <ClCompile Include="algos\lyra2\Sponge.c" />
+    <ClInclude Include="algos\lyra2\Lyra2.h" />
+    <ClInclude Include="algos\lyra2\Sponge.h" />
+    <ClInclude Include="algos\lyra2\cuda_lyra2.h" />
+    <CudaCompile Include="algos\lyra2\cuda_lyra2.cu" />
+    <CudaCompile Include="algos\lyra2\cuda_blake256_keccak256.cu" />
+    <CudaCompile Include="algos\lyra2\cuda_cubehash256.cu" />
+    <CudaCompile Include="algos\lyra2\cuda_skein256.cu" />
+    <CudaCompile Include="algos\lyra2\cuda_groestl256.cu" />
+    <None Include="algos\lyra2\cuda_lyra2_sm2.cuh" />
+    <None Include="algos\lyra2\cuda_lyra2_sm5.cuh" />
+    <ClInclude Include="algos\lyra2\cuda_lyra2_vectors.h" />
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\quark\quark.cu" />
     <CudaCompile Include="algos\quark\cuda_quark_split.cu" />
     <CudaCompile Include="algos\quark\cuda_quark_selftest.cu" />

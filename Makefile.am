@@ -41,6 +41,7 @@ EXTRA_ccminer_SOURCES = sph/aes_helper.c sph/hamsi_helper.c sph/md_helper.c
 ALGO_DEFINES =
 
 include $(srcdir)/algos/common/algo.mk
+include $(srcdir)/algos/allium/algo.mk
 include $(srcdir)/algos/blake/algo.mk
 include $(srcdir)/algos/blake2s/algo.mk
 include $(srcdir)/algos/bmw512/algo.mk
@@ -50,6 +51,7 @@ include $(srcdir)/algos/quark/algo.mk
 include $(srcdir)/algos/qubit/algo.mk
 include $(srcdir)/algos/sha256d/algo.mk
 include $(srcdir)/algos/keccak/algo.mk
+include $(srcdir)/algos/lyra2/algo.mk
 include $(srcdir)/algos/skein/algo.mk
 include $(srcdir)/algos/tribus/algo.mk
 include $(srcdir)/algos/whirlpool/algo.mk
