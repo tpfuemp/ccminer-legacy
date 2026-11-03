@@ -35,8 +35,11 @@ sed -n 's/.*<\(ClCompile\|CudaCompile\|ClInclude\|None\) Include="\([^"]*\)".*/\
 {
 	am_sources Makefile.am ccminer_SOURCES
 	am_sources Makefile.am EXTRA_ccminer_SOURCES
-	for mk in algos/*/algo.mk; do am_sources "$mk" ccminer_SOURCES; done
-} | sort -u > "$tmp/make"
+	for mk in algos/*/algo.mk; do
+		am_sources "$mk" ccminer_SOURCES
+		am_sources "$mk" EXTRA_ccminer_SOURCES
+	done
+} | grep -v '^compat/' | sort -u > "$tmp/make"
 find core cuda sph algos -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.cu' \
 	-o -name '*.h' -o -name '*.hpp' -o -name '*.cuh' \) | sort -u > "$tmp/disk"
 
@@ -49,6 +52,15 @@ comm -23 "$tmp/disk" "$tmp/listed" > "$tmp/x"
 report "on disk, listed in neither build:" "$tmp/x"
 comm -13 "$tmp/disk" "$tmp/listed" > "$tmp/x"
 report "listed, missing on disk:" "$tmp/x"
+
+# compat sources built in the main project on both sides
+for f in compat/secp256k1_unity.c; do
+	w=$(echo "$f" | tr '/' '\\')
+	grep -qF "Include=\"$w\"" ccminer.props || echo "$f" > "$tmp/x"
+	am_sources Makefile.am ccminer_SOURCES | grep -qx "$f" || echo "$f" >> "$tmp/x"
+	report "compat source missing in ccminer.props or Makefile.am:" "$tmp/x"
+	rm -f "$tmp/x"
+done
 
 # bundled jansson (Windows builds it in the main project)
 sed -n 's/.*<ClCompile Include="compat\\jansson\\\([^"]*\.c\)".*/\1/p' \

@@ -28,6 +28,7 @@ static bool device_watchdog[MAX_GPUS] = { 0 };
 static uint32_t thr_throughput[MAX_GPUS] = { 0 };
 static uint32_t thr_tdr_cap[MAX_GPUS] = { 0 };
 static bool thr_tdr_warned[MAX_GPUS] = { 0 };
+static bool thr_tdr_own[MAX_GPUS] = { 0 };
 
 #ifdef __cplusplus
 /* miner.h functions are declared in C type, not C++ */
@@ -259,7 +260,7 @@ void cuda_check_launch_time(int thr_id, double hashrate)
 	if (thr_id < 0 || thr_id >= MAX_GPUS || hashrate <= 0.)
 		return;
 	uint32_t throughput = thr_throughput[thr_id];
-	if (!throughput || !device_watchdog[device_map[thr_id]])
+	if (!throughput || thr_tdr_own[thr_id] || !device_watchdog[device_map[thr_id]])
 		return;
 	double sec = (double) throughput / hashrate;
 	if (sec <= TDR_MAX_LAUNCH_SEC)
@@ -277,6 +278,19 @@ void cuda_check_launch_time(int thr_id, double hashrate)
 		gpulog(LOG_WARNING, thr_id, "one launch takes about %.2f s on a display GPU (TDR risk), "
 			"intensity lowered from %g to %g", sec, throughput2intensity(throughput), throughput2intensity(cap));
 	}
+}
+
+// algos with many launches per scan time their launches themselves: the check
+// above would take the whole scan for one launch
+void cuda_tdr_own_check(int thr_id, bool own)
+{
+	if (thr_id >= 0 && thr_id < MAX_GPUS)
+		thr_tdr_own[thr_id] = own;
+}
+
+bool cuda_device_watchdog(int thr_id)
+{
+	return device_watchdog[device_map[thr_id % MAX_GPUS]];
 }
 
 // if we use 2 threads on the same gpu, we need to reinit the threads

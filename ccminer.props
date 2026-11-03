@@ -191,6 +191,34 @@
     <ClCompile Include="algos\sha256d\register.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\bc3hash\bc3hash.cu" />
+    <ClCompile Include="algos\bc3hash\bc3hash_oracle.cpp" />
+    <ClCompile Include="algos\bc3hash\register.cpp" />
+    <None Include="algos\bc3hash\cuda\bc3_constants.cuh" />
+    <None Include="algos\bc3hash\cuda\bc3_ec_device.cuh" />
+    <None Include="algos\bc3hash\cuda\bc3_exp_device.cuh" />
+    <None Include="algos\bc3hash\cuda\bc3_hashes_device.cuh" />
+    <None Include="algos\bc3hash\cuda\bc3_mix_device.cuh" />
+    <None Include="algos\bc3hash\cuda\bc3_modinv_device.cuh" />
+    <None Include="algos\bc3hash\cuda\bc3_secp_device.cuh" />
+    <None Include="algos\bc3hash\cuda\bc3_uint_device.cuh" />
+    <None Include="algos\bc3hash\ref\mix.cpp" />
+    <None Include="algos\bc3hash\ref\hash.cpp" />
+    <None Include="algos\bc3hash\ref\standard_hashes.cpp" />
+    <ClInclude Include="algos\bc3hash\ref\bc3_shim.h" />
+    <ClInclude Include="algos\bc3hash\ref\constants.hpp" />
+    <ClInclude Include="algos\bc3hash\ref\mix_internal.hpp" />
+    <ClInclude Include="algos\bc3hash\ref\standard_hashes.hpp" />
+    <ClInclude Include="algos\bc3hash\ref\uint.hpp" />
+    <ClInclude Include="algos\bc3hash\ref\include\bc3\bc3.hpp" />
+    <None Include="cuda\secp256k1_field_device.cuh" />
+    <None Include="cuda\secp256k1_group_device.cuh" />
+    <None Include="cuda\secp256k1_modinv32_device.cuh" />
+    <ClCompile Include="compat\secp256k1_unity.c">
+      <AdditionalIncludeDirectories>compat\secp256k1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\allium\allium.cu" />
     <CudaCompile Include="algos\allium\cuda_allium_selftest.cu" />
     <ClCompile Include="algos\allium\register.cpp" />

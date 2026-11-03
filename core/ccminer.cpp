@@ -2745,6 +2745,7 @@ static void *miner_thread(void *userdata)
 				case ALGO_POWER2B:
 				case ALGO_YESPOWEREQPAY:
 				case ALGO_MINOTAURX:
+			case ALGO_BC3HASH:
 				minmax = 0x8000;
 				break;
 			case ALGO_CRYPTOLIGHT:

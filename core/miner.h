@@ -380,6 +380,7 @@ extern int scanhash_mike(int thr_id, struct work* work, uint32_t max_nonce, unsi
 extern int scanhash_flex(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done);
 extern int scanhash_minotaurx(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done);
 extern int scanhash_sha3t(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done);
+extern int scanhash_bc3hash(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done);
 extern int scanhash_soterg(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done);
 extern int scanhash_x25x(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done);
 extern int scanhash_curvehash(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done);
@@ -490,11 +491,13 @@ extern void free_mike(int thr_id);
 extern void free_flex(int thr_id);
 extern void free_minotaurx(int thr_id);
 extern void free_sha3t(int thr_id);
+extern void free_bc3hash(int thr_id);
 extern void free_soterg(int thr_id);
 extern void free_x25x(int thr_id);
 extern void free_curvehash(int thr_id);
 extern void free_equihash(int thr_id);
 void sha3t256_hash(void *state, const void *input);
+void bc3hash_hash(void *output, const void *input80);
 void soterg_hash(void *output, const void *input);
 void x25x_hash(void *output, const void *input);
 extern void free_sha256dv(int thr_id);
@@ -696,6 +699,8 @@ uint32_t throughput_time_cap(uint32_t throughput, double hashrate, double max_se
 uint32_t throughput_mem_cap(uint32_t throughput, size_t bytes_per_thread, size_t avail_bytes);
 uint32_t cuda_mem_throughput_cap(int thr_id, uint32_t throughput, size_t bytes_per_thread, size_t fixed_bytes);
 void cuda_check_launch_time(int thr_id, double hashrate);
+void cuda_tdr_own_check(int thr_id, bool own);
+bool cuda_device_watchdog(int thr_id);
 
 void cuda_log_lasterror(int thr_id, const char* func, int line);
 void cuda_clear_lasterror();

@@ -7,7 +7,7 @@ if WANT_JANSSON
 JANSSON_INCLUDES = -I$(top_srcdir)/compat/jansson
 endif
 
-EXTRA_DIST = autogen.sh build.sh build-tests.sh check-sync.sh README.md BENCHMARKS.md \
+EXTRA_DIST = compat/secp256k1 algos/bc3hash/ref/COPYING autogen.sh build.sh build-tests.sh check-sync.sh README.md BENCHMARKS.md \
 	     LICENSE.txt CREDITS.txt \
 	     ccminer.sln ccminer.props ccminer-cuda8.vcxproj ccminer-cuda10.vcxproj \
 	     docker/Dockerfile docker/provision.sh
@@ -42,6 +42,7 @@ ALGO_DEFINES =
 
 include $(srcdir)/algos/common/algo.mk
 include $(srcdir)/algos/allium/algo.mk
+include $(srcdir)/algos/bc3hash/algo.mk
 include $(srcdir)/algos/blake/algo.mk
 include $(srcdir)/algos/blake2s/algo.mk
 include $(srcdir)/algos/bmw512/algo.mk
@@ -62,7 +63,10 @@ COMMON_INCLUDES = -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/core \
 		  -I$(top_srcdir)/cuda $(JANSSON_INCLUDES) @CUDA_INCLUDES@
 COMMON_DEFINES = -DUSE_WRAPNVML $(ALGO_DEFINES)
 
-ccminer_CPPFLAGS = $(COMMON_INCLUDES) $(COMMON_DEFINES) @LIBCURL_CPPFLAGS@ \
+# bc3hash host reference: libsecp256k1 (MIT) as one translation unit
+ccminer_SOURCES += compat/secp256k1_unity.c
+
+ccminer_CPPFLAGS = $(COMMON_INCLUDES) -I$(top_srcdir)/compat/secp256k1 $(COMMON_DEFINES) @LIBCURL_CPPFLAGS@ \
 		   $(PTHREAD_FLAGS) -fno-strict-aliasing
 ccminer_CXXFLAGS = -std=gnu++11
 ccminer_LDFLAGS  = $(PTHREAD_FLAGS) @CUDA_LDFLAGS@
