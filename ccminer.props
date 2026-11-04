@@ -158,9 +158,12 @@
     <ClCompile Include="sph\jh.c" />
     <ClCompile Include="sph\keccak.c" />
     <ClCompile Include="sph\luffa.c" />
+    <ClCompile Include="sph\sha2big.c" />
+    <ClCompile Include="sph\shabal.c" />
     <ClCompile Include="sph\shavite.c" />
     <ClCompile Include="sph\simd.c" />
     <ClCompile Include="sph\skein.c" />
+    <ClCompile Include="sph\tiger.c" />
     <ClCompile Include="sph\whirlpool.c" />
     <None Include="sph\aes_helper.c" />
     <None Include="sph\hamsi_helper.c" />
@@ -175,9 +178,12 @@
     <ClInclude Include="sph\sph_jh.h" />
     <ClInclude Include="sph\sph_keccak.h" />
     <ClInclude Include="sph\sph_luffa.h" />
+    <ClInclude Include="sph\sph_sha2.h" />
+    <ClInclude Include="sph\sph_shabal.h" />
     <ClInclude Include="sph\sph_shavite.h" />
     <ClInclude Include="sph\sph_simd.h" />
     <ClInclude Include="sph\sph_skein.h" />
+    <ClInclude Include="sph\sph_tiger.h" />
     <ClInclude Include="sph\sph_types.h" />
     <ClInclude Include="sph\sph_whirlpool.h" />
   </ItemGroup>
@@ -341,6 +347,24 @@
     <CudaCompile Include="algos\x13\cuda_x13_selftest.cu" />
     <ClCompile Include="algos\x13\register.cpp" />
     <ClInclude Include="algos\x13\x13.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\x16\cuda_x16_simd512_80.cu" />
+    <CudaCompile Include="algos\x16\cuda_x16_echo512.cu" />
+    <CudaCompile Include="algos\x16\cuda_x16_echo512_64.cu" />
+    <CudaCompile Include="algos\x16\cuda_x16_fugue512.cu" />
+    <CudaCompile Include="algos\x16\cuda_x16_shabal512.cu" />
+    <CudaCompile Include="algos\x16\cuda_shabal512.cu" />
+    <CudaCompile Include="algos\x16\cuda_x16_whirlpool.cu" />
+    <CudaCompile Include="algos\x16\cuda_sha512.cu" />
+    <CudaCompile Include="algos\x16\cuda_luffa512.cu" />
+    <CudaCompile Include="algos\x16\cuda_tiger192.cu" />
+    <CudaCompile Include="algos\x16\x16.cu" />
+    <CudaCompile Include="algos\x16\cuda_x16_selftest.cu" />
+    <ClCompile Include="algos\x16\register.cpp" />
+    <ClInclude Include="algos\x16\cuda_x16.h" />
+    <ClInclude Include="algos\x16\x16.h" />
+    <None Include="algos\x16\cuda_x16_whirlpool_tables.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\ccminer.ico" />

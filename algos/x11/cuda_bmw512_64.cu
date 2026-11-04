@@ -395,3 +395,79 @@ void quark_bmw512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce
 	dim3 block(threadsperblock);
 	quark_bmw512_gpu_hash_64<<<grid, block>>>(threads, startNounce, (uint64_t*)d_hash, d_nonceVector);
 }
+
+/* BMW-512 of the 80-byte header (block set by quark_bmw512_cpu_setBlock_80) */
+static __constant__ uint64_t c_PaddedMessage80[16];
+
+__global__ __launch_bounds__(256, 2)
+void quark_bmw512_gpu_hash_80(uint32_t threads, uint32_t startNounce, uint64_t *g_hash)
+{
+	uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
+	if (thread < threads)
+	{
+		uint32_t nounce = startNounce + thread;
+
+		uint2 h[16] = {
+			{ 0x84858687UL, 0x80818283UL },
+			{ 0x8C8D8E8FUL, 0x88898A8BUL },
+			{ 0x94959697UL, 0x90919293UL },
+			{ 0x9C9D9E9FUL, 0x98999A9BUL },
+			{ 0xA4A5A6A7UL, 0xA0A1A2A3UL },
+			{ 0xACADAEAFUL, 0xA8A9AAABUL },
+			{ 0xB4B5B6B7UL, 0xB0B1B2B3UL },
+			{ 0xBCBDBEBFUL, 0xB8B9BABBUL },
+			{ 0xC4C5C6C7UL, 0xC0C1C2C3UL },
+			{ 0xCCCDCECFUL, 0xC8C9CACBUL },
+			{ 0xD4D5D6D7UL, 0xD0D1D2D3UL },
+			{ 0xDCDDDEDFUL, 0xD8D9DADBUL },
+			{ 0xE4E5E6E7UL, 0xE0E1E2E3UL },
+			{ 0xECEDEEEFUL, 0xE8E9EAEBUL },
+			{ 0xF4F5F6F7UL, 0xF0F1F2F3UL },
+			{ 0xFCFDFEFFUL, 0xF8F9FAFBUL }
+		};
+		// the 80-byte header in a 128-byte block
+		uint2 message[16];
+#pragma unroll 16
+		for(int i=0;i<16;i++)
+			message[i] = vectorize(c_PaddedMessage80[i]);
+
+		message[9].y = cuda_swab32(nounce);
+
+		// Compression 1
+		Compression512(message, h);
+
+#pragma unroll 16
+		for(int i=0;i<16;i++)
+			message[i] = make_uint2(0xaaaaaaa0+i,0xaaaaaaaa);
+
+
+		Compression512(h, message);
+
+		uint64_t *outpHash = &g_hash[thread * 8];
+
+#pragma unroll 8
+		for(int i=0;i<8;i++)
+			outpHash[i] = devectorize(message[i+8]);
+	}
+}
+
+__host__
+void quark_bmw512_cpu_setBlock_80(void *pdata)
+{
+	unsigned char PaddedMessage[128];
+	memcpy(PaddedMessage, pdata, 80);
+	memset(PaddedMessage+80, 0, 48);
+	uint64_t *message = (uint64_t*)PaddedMessage;
+	message[10] = 0x80ULL;
+	message[15] = 640ULL;
+	cudaMemcpyToSymbol(c_PaddedMessage80, PaddedMessage, 16*sizeof(uint64_t), 0, cudaMemcpyHostToDevice);
+}
+
+__host__
+void quark_bmw512_cpu_hash_80(int thr_id, uint32_t threads, uint32_t startNounce, uint32_t *d_hash, int order)
+{
+	const uint32_t threadsperblock = 128;
+	dim3 grid((threads + threadsperblock-1)/threadsperblock);
+	dim3 block(threadsperblock);
+	quark_bmw512_gpu_hash_80<<<grid, block>>>(threads, startNounce, (uint64_t*)d_hash);
+}

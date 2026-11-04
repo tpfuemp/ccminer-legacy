@@ -256,3 +256,77 @@ void quark_keccak512_cpu_init(int thr_id, uint32_t threads)
 			sizeof(host_keccak_round_constants), 0, cudaMemcpyHostToDevice);
 }
 
+/* Keccak-512 of the 80-byte header: the first 72 bytes (one rate block) are absorbed on
+ * the host, each thread absorbs bytes 72..79 with its nonce and the padding */
+static __constant__ uint2 c_keccak80_mid[25];
+static __constant__ uint32_t c_keccak80_last; /* header word 18 */
+
+static void keccakf_host(uint64_t s[25])
+{
+	static const int rotc[24] = { 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44 };
+	static const int piln[24] = { 10, 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12, 2, 20, 14, 22, 9, 6, 1 };
+	for (int r = 0; r < 24; r++) {
+		uint64_t bc[5], t;
+		for (int i = 0; i < 5; i++)
+			bc[i] = s[i] ^ s[i + 5] ^ s[i + 10] ^ s[i + 15] ^ s[i + 20];
+		for (int i = 0; i < 5; i++) {
+			t = bc[(i + 4) % 5] ^ ROTL64(bc[(i + 1) % 5], 1);
+			for (int j = 0; j < 25; j += 5)
+				s[j + i] ^= t;
+		}
+		t = s[1];
+		for (int i = 0; i < 24; i++) {
+			const int j = piln[i];
+			bc[0] = s[j];
+			s[j] = ROTL64(t, rotc[i]);
+			t = bc[0];
+		}
+		for (int j = 0; j < 25; j += 5) {
+			for (int i = 0; i < 5; i++)
+				bc[i] = s[j + i];
+			for (int i = 0; i < 5; i++)
+				s[j + i] ^= (~bc[(i + 1) % 5]) & bc[(i + 2) % 5];
+		}
+		s[0] ^= host_keccak_round_constants[r];
+	}
+}
+
+__host__
+void keccak512_setBlock_80(int thr_id, uint32_t *endiandata)
+{
+	uint64_t s[25] = { 0 };
+	memcpy(s, endiandata, 72);
+	keccakf_host(s);
+	cudaMemcpyToSymbol(c_keccak80_mid, s, sizeof(s), 0, cudaMemcpyHostToDevice);
+	cudaMemcpyToSymbol(c_keccak80_last, &endiandata[18], 4, 0, cudaMemcpyHostToDevice);
+}
+
+__global__
+void keccak512_gpu_hash_80(uint32_t threads, uint32_t startNounce, uint64_t *g_hash)
+{
+	const uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
+	if (thread < threads)
+	{
+		uint2 s[25];
+		#pragma unroll
+		for (int i = 0; i < 25; i++)
+			s[i] = c_keccak80_mid[i];
+		s[0] ^= make_uint2(c_keccak80_last, cuda_swab32(startNounce + thread));
+		s[1] ^= make_uint2(0x01, 0);       /* padding after byte 79 */
+		s[8] ^= make_uint2(0, 0x80000000); /* last bit of the rate block */
+		keccak_block(s);
+		uint64_t *outHash = &g_hash[(size_t)thread * 8];
+		#pragma unroll
+		for (int i = 0; i < 8; i++)
+			outHash[i] = devectorize(s[i]);
+	}
+}
+
+__host__
+void keccak512_cuda_hash_80(const int thr_id, const uint32_t threads, const uint32_t startNounce, uint32_t *d_hash)
+{
+	const uint32_t threadsperblock = 128;
+	dim3 grid((threads + threadsperblock - 1) / threadsperblock);
+	dim3 block(threadsperblock);
+	keccak512_gpu_hash_80 <<<grid, block>>> (threads, startNounce, (uint64_t*)d_hash);
+}

@@ -72,6 +72,9 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `whirlpool` | 4x Whirlpool-T (old whirlpool) |
 | `x11` | X11, 11 chained 512-bit hashes (Dash) |
 | `x13` | X13, X11 + Hamsi + Fugue, 512 bits each |
+| `x16r` | X16R, 16 chained 512-bit hashes in prevhash order |
+| `x16rv2` | X16RV2, X16R with Tiger-192 before Keccak, Luffa and SHA-512 |
+| `x16s` | X16S, X16R with the order shuffled by the prevhash |
 
 Run `ccminer --help` for the authoritative list.
 

@@ -254,3 +254,76 @@ void x11_cubehash512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNou
 
 __host__
 void x11_cubehash512_cpu_init(int thr_id, uint32_t threads) { }
+
+/* CubeHash-512 of the 80-byte header: midstate of the first 64 bytes on the host (sph),
+ * the last 16 bytes and the nonce on the device */
+__constant__ static uint32_t c_midstate128[32];
+__constant__ static uint32_t c_PaddedMessage80[4];
+
+#undef SPH_C32
+#undef SPH_C64
+#undef SPH_T32
+#undef SPH_T64
+#include "sph/sph_cubehash.h"
+
+__host__
+void cubehash512_setBlock_80(int thr_id, uint32_t* endiandata)
+{
+	sph_cubehash512_context ctx_cubehash;
+	sph_cubehash512_init(&ctx_cubehash);
+	sph_cubehash512(&ctx_cubehash, (void*)endiandata, 64);
+	cudaMemcpyToSymbol(c_midstate128, ctx_cubehash.state, 128, 0, cudaMemcpyHostToDevice);
+	cudaMemcpyToSymbol(c_PaddedMessage80, &endiandata[16], 16, 0, cudaMemcpyHostToDevice);
+}
+
+__global__
+void cubehash512_gpu_hash_80(const uint32_t threads, const uint32_t startNounce, uint64_t *g_outhash)
+{
+	const uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
+	if (thread < threads)
+	{
+		const uint32_t nonce = startNounce + thread;
+		uint32_t message[8];
+		uint32_t x[2][2][2][2][2];
+		AS_UINT2(x[0][0][0][0]) = AS_UINT2(&c_midstate128[ 0]);
+		AS_UINT2(x[0][0][0][1]) = AS_UINT2(&c_midstate128[ 2]);
+		AS_UINT2(x[0][0][1][0]) = AS_UINT2(&c_midstate128[ 4]);
+		AS_UINT2(x[0][0][1][1]) = AS_UINT2(&c_midstate128[ 6]);
+		AS_UINT2(x[0][1][0][0]) = AS_UINT2(&c_midstate128[ 8]);
+		AS_UINT2(x[0][1][0][1]) = AS_UINT2(&c_midstate128[10]);
+		AS_UINT2(x[0][1][1][0]) = AS_UINT2(&c_midstate128[12]);
+		AS_UINT2(x[0][1][1][1]) = AS_UINT2(&c_midstate128[14]);
+
+		AS_UINT2(x[1][0][0][0]) = AS_UINT2(&c_midstate128[16]);
+		AS_UINT2(x[1][0][0][1]) = AS_UINT2(&c_midstate128[18]);
+		AS_UINT2(x[1][0][1][0]) = AS_UINT2(&c_midstate128[20]);
+		AS_UINT2(x[1][0][1][1]) = AS_UINT2(&c_midstate128[22]);
+		AS_UINT2(x[1][1][0][0]) = AS_UINT2(&c_midstate128[24]);
+		AS_UINT2(x[1][1][0][1]) = AS_UINT2(&c_midstate128[26]);
+		AS_UINT2(x[1][1][1][0]) = AS_UINT2(&c_midstate128[28]);
+		AS_UINT2(x[1][1][1][1]) = AS_UINT2(&c_midstate128[30]);
+
+		// last 16 bytes
+		AS_UINT4(&message[0]) = AS_UINT4(&c_PaddedMessage80[0]);
+		// nonce + padding
+		message[3] = cuda_swab32(nonce);
+		message[4] = 0x80;
+		message[5] = 0;
+		message[6] = 0;
+		message[7] = 0;
+		Update32(x, message);
+
+		uint32_t* output = (uint32_t*) (&g_outhash[(size_t)8 * thread]);
+		Final(x, output);
+	}
+}
+
+__host__
+void cubehash512_cuda_hash_80(const int thr_id, const uint32_t threads, const uint32_t startNounce, uint32_t *d_hash)
+{
+	const uint32_t threadsperblock = 256;
+	dim3 grid((threads + threadsperblock-1)/threadsperblock);
+	dim3 block(threadsperblock);
+
+	cubehash512_gpu_hash_80 <<<grid, block>>> (threads, startNounce, (uint64_t*) d_hash);
+}
