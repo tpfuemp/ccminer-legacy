@@ -27,6 +27,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
 | myr-gr | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 3.12 MH/s (PTX JIT) | 3.15 MH/s |
 | myr-gr | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 114.0 MH/s | 117.1 MH/s |
+| neoscrypt | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 46.6 kH/s (PTX JIT) | 48.9 kH/s |
+| neoscrypt | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1465 kH/s | 1729 kH/s |
 | quark | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.083 MH/s (PTX JIT) | 1.096 MH/s |
 | quark | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 45.0 MH/s | 46.7 MH/s |
 | qubit | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.22 MH/s (PTX JIT) | 1.22 MH/s |

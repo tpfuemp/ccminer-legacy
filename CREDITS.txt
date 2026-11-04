@@ -16,13 +16,20 @@ CUDA 8, VS2015 on Windows and GCC 5 on Linux.
 Kernel / code contributors
 ---------------------------
 Includes kernels and work from: lenis0012, tpruvot, alexis78, djm34, djEzo,
-tsiv, and krnlx, plus the many contributors to the upstream ccminer projects.
+tsiv, krnlx, Nanashi Meiyo-Meijin and KlausT, plus the many contributors to the
+upstream ccminer projects.
 
 Third-party code (MIT)
 ----------------------
 bc3hash reference code (crypto/bc3) by the Bitcoin Core / Bitcoin III developers,
 see algos/bc3hash/ref/COPYING. libsecp256k1 by Pieter Wuille and contributors,
 see compat/secp256k1/COPYING.
+
+Third-party code (BSD)
+----------------------
+NeoScrypt CPU reference (algos/neoscrypt/neoscrypt-cpu.c) by Colin Percival,
+ArtForz, Andrew Moon, Samuel Neves and John Doering, 2-clause BSD license in
+the file header.
 
 Donation
 --------

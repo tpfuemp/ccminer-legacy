@@ -63,6 +63,8 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
 | `myr-gr` | Groestl-512 + SHA256 (Myriad) |
+| `neoscrypt` | NeoScrypt, memory-hard (Feathercoin and others) |
+| `neoscrypt-xaya` | NeoScrypt with the XAYA header layout, same hash as `neoscrypt` |
 | `quark` | Quark, 9 steps of BLAKE/BMW/Groestl/JH/Keccak/Skein-512, 3 of them hash-dependent |
 | `qubit` | Luffa + CubeHash + SHAvite + SIMD + ECHO, 512 bits each (Qubit) |
 | `sha256d` | SHA256d (Bitcoin) |

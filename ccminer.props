@@ -367,6 +367,15 @@
     <None Include="algos\x16\cuda_x16_whirlpool_tables.cuh" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\neoscrypt\neoscrypt.cu" />
+    <CudaCompile Include="algos\neoscrypt\cuda_neoscrypt.cu" />
+    <CudaCompile Include="algos\neoscrypt\cuda_neoscrypt_selftest.cu" />
+    <ClCompile Include="algos\neoscrypt\neoscrypt-cpu.c" />
+    <ClCompile Include="algos\neoscrypt\register.cpp" />
+    <ClInclude Include="algos\neoscrypt\neoscrypt.h" />
+    <ClInclude Include="algos\neoscrypt\neoscrypt-cpu.h" />
+  </ItemGroup>
+  <ItemGroup>
     <Image Include="res\ccminer.ico" />
     <ResourceCompile Include="res\ccminer.rc" />
   </ItemGroup>
