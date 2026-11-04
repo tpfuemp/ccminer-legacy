@@ -3,8 +3,8 @@
  * Init-time self-test of the x16 chains, once per GPU, fail-closed
  * (cuda/selftest_gate.cuh). 16 headers, header byte 11 picks the first block of
  * the x16r order, so every 80-byte kernel runs first once; each header under x16r,
- * x16s and x16rv2. Each scan covers one nonce: a target equal to the top 64 bits of
- * the CPU hash must report it, one below must not.
+ * x16s, x16rv2 and x16rt. Each scan covers one nonce: a target equal to the top 64 bits
+ * of the CPU hash must report it, one below must not.
  */
 #include <string.h>
 
@@ -41,17 +41,17 @@ bool x16_device_selftest(int thr_id)
 	if (tested[dev_id]) return true;
 	tested[dev_id] = true;
 
-	static const char *const names[3] = { "x16r", "x16s", "x16rv2" };
+	static const char *const names[X16_VARIANTS] = { "x16r", "x16s", "x16rv2", "x16rt" };
 	bool passed = true;
 	for (int first = 0; passed && first < 16; first++) {
 		uint8_t header[80];
 		for (int i = 0; i < 80; i++)
 			header[i] = (uint8_t) (i * 29 + first * 7 + 3);
 		header[11] = (uint8_t) ((first << 4) | (header[11] & 0x0F));
-		for (int v = 0; passed && v < 3; v++) {
+		for (int v = 0; passed && v < X16_VARIANTS; v++) {
 			uint8_t order[16], cpu[32];
 			x16_order(v, header, order);
-			if (v != X16_S && order[0] != first) {
+			if ((v == X16_R || v == X16_RV2) && order[0] != first) {
 				gpulog(LOG_ERR, thr_id, "x16 self-test FAILED: order, first %d", first);
 				passed = false;
 				break;

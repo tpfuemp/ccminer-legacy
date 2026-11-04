@@ -1,7 +1,7 @@
 /**
- * X16R, X16S and X16RV2: 16 chained 512-bit hashes of the 80-byte header in an order
- * picked from the previous block hash. X16RV2 hashes Tiger-192 (zero-padded to 64 bytes)
- * before Keccak, Luffa and SHA-512.
+ * X16R, X16S, X16RV2 and X16RT: 16 chained 512-bit hashes of the 80-byte header in an
+ * order picked from the previous block hash (X16RT: from the block time). X16RV2 hashes
+ * Tiger-192 (zero-padded to 64 bytes) before Keccak, Luffa and SHA-512.
  */
 extern "C" {
 #include "sph/sph_blake.h"
@@ -47,11 +47,19 @@ static const char *const algo_names[HASH_FUNC_COUNT] = {
 void x16_order(int variant, const uint8_t *header80, uint8_t order[16])
 {
 	const uint8_t *prev = header80 + 4;
+	uint8_t time_hash[32];
+	if (variant == X16_RT) {
+		// sha256d of the 4 LE bytes of the ntime, rounded down to 128 s
+		uint8_t t[4];
+		le32enc(t, le32dec(header80 + 68) & 0xffffff80);
+		sha256d(time_hash, t, 4);
+		prev = time_hash;
+	}
 	uint8_t list[HASH_FUNC_COUNT];
 	for (int i = 0; i < HASH_FUNC_COUNT; i++)
 		list[i] = (uint8_t) i;
 	for (int i = 0; i < HASH_FUNC_COUNT; i++) {
-		// 16 hex digits of the first 8 prevhash bytes, last byte first
+		// 16 hex digits of the first 8 hash bytes, last byte first
 		const uint8_t b = prev[(15 - i) >> 1];
 		const uint8_t digit = (i & 1) ? (b & 0xF) : (b >> 4);
 		if (variant != X16_S) {
@@ -121,6 +129,7 @@ void x16_hash(int variant, void *output, const void *input)
 extern "C" void x16r_hash(void *output, const void *input) { x16_hash(X16_R, output, input); }
 extern "C" void x16s_hash(void *output, const void *input) { x16_hash(X16_S, output, input); }
 extern "C" void x16rv2_hash(void *output, const void *input) { x16_hash(X16_RV2, output, input); }
+extern "C" void x16rt_hash(void *output, const void *input) { x16_hash(X16_RT, output, input); }
 
 static uint32_t *d_hash[MAX_GPUS];
 static int s_variant[MAX_GPUS];
@@ -248,8 +257,8 @@ static int scanhash_x16(int variant, int thr_id, struct work* work, uint32_t max
 	if (opt_benchmark) {
 		ptarget[7] = 0x003f;
 		// benchmark order as the reference miner: x16r/x16rv2 ECHO then 15x BLAKE, x16s the
-		// shuffle of a zero prevhash
-		if (variant != X16_S)
+		// shuffle of a zero prevhash, x16rt the order of the fixed benchmark ntime
+		if (variant == X16_R || variant == X16_RV2)
 			((uint8_t*) pdata)[8] = 0xAA;
 	}
 
@@ -385,7 +394,12 @@ extern "C" int scanhash_x16rv2(int thr_id, struct work* work, uint32_t max_nonce
 	return scanhash_x16(X16_RV2, thr_id, work, max_nonce, hashes_done);
 }
 
-// cleanup, shared by the three algos
+extern "C" int scanhash_x16rt(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done)
+{
+	return scanhash_x16(X16_RT, thr_id, work, max_nonce, hashes_done);
+}
+
+// cleanup, shared by the four algos
 static void free_x16(int thr_id)
 {
 	if (!init[thr_id])
@@ -406,3 +420,4 @@ static void free_x16(int thr_id)
 extern "C" void free_x16r(int thr_id) { free_x16(thr_id); }
 extern "C" void free_x16s(int thr_id) { free_x16(thr_id); }
 extern "C" void free_x16rv2(int thr_id) { free_x16(thr_id); }
+extern "C" void free_x16rt(int thr_id) { free_x16(thr_id); }

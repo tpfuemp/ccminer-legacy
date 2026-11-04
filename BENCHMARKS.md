@@ -45,6 +45,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | x13 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 17.8 MH/s | 17.9 MH/s |
 | x16r | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.112 MH/s (PTX JIT) | 1.103 MH/s |
 | x16r | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 32.1 MH/s | 34.3 MH/s |
+| x16rt | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 679.6 kH/s (PTX JIT) | 688.5 kH/s |
+| x16rt | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 24.1 MH/s | 25.6 MH/s |
 | x16rv2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.101 MH/s (PTX JIT) | 1.104 MH/s |
 | x16rv2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 31.9 MH/s | 32.8 MH/s |
 | x16s | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.397 MH/s (PTX JIT) | 0.400 MH/s |
@@ -52,7 +54,9 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 
 x16r, x16rv2 and x16s benchmark one fixed hash order, the same as tpruvot's
 ccminer (x16r and x16rv2: ECHO, then 15 times BLAKE; x16s: the order of a zero
-previous block hash). When mining, the order changes with every block, so the
-rate varies and is lower: x16rv2 pool runs gave 30 to 60 % of the benchmark rate.
+previous block hash). x16rt benchmarks the order of the fixed benchmark block
+time. When mining, the order changes with the block (x16rt: every 128 s), so
+the rate varies: pool runs gave 30 to 60 % of the benchmark rate for x16rv2
+and 50 to 110 % for x16rt.
 
 Maxwell (`sm_50`, `sm_52`) is untested so far; reports are welcome.
