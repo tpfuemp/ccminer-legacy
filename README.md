@@ -62,6 +62,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `groestl` | Double Groestl-512 (Groestlcoin) |
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
+| `lyra2v2` | Lyra2REv2: BLAKE-256, Keccak-256, CubeHash-256, Lyra2, Skein-256, CubeHash-256, BMW-256 (Monacoin), alias `lyra2rev2` |
 | `myr-gr` | Groestl-512 + SHA256 (Myriad) |
 | `neoscrypt` | NeoScrypt, memory-hard (Feathercoin and others) |
 | `neoscrypt-xaya` | NeoScrypt with the XAYA header layout, same hash as `neoscrypt` |

@@ -34,7 +34,7 @@
 /* threads per block and blocks per SM (BPM1 SMix, BPM2 FastKDF), mirrored in neoscrypt_cpu_init() */
 #if __CUDA_ARCH__ >= 520
 #define TPB 128
-#define BPM1 4
+#define BPM1 2
 #define BPM2 3
 #elif __CUDA_ARCH__ >= 500
 #define TPB 128
@@ -1268,7 +1268,7 @@ bool neoscrypt_cpu_init(int thr_id, uint32_t threads)
 		const double cores = (double) p.multiProcessorCount * (p.major == 6 && p.minor == 0 ? 64 : 128);
 		uint32_t bpm = (uint32_t) ((double) p.l2CacheSize / (cores * 256 * 1.2));
 		if (bpm < 1) bpm = 1;
-		if (bpm < 4) // BPM1 of the sm_50+ shapes
+		if (bpm < 4) // at most 4 SMix blocks fit an SM anyway
 			s_smem2[thr_id] = (uint32_t) min((size_t) p.sharedMemPerMultiprocessor / bpm,
 				(size_t) p.sharedMemPerBlock);
 	}

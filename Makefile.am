@@ -55,6 +55,7 @@ include $(srcdir)/algos/qubit/algo.mk
 include $(srcdir)/algos/sha256d/algo.mk
 include $(srcdir)/algos/keccak/algo.mk
 include $(srcdir)/algos/lyra2/algo.mk
+include $(srcdir)/algos/lyra2v2/algo.mk
 include $(srcdir)/algos/skein/algo.mk
 include $(srcdir)/algos/tribus/algo.mk
 include $(srcdir)/algos/whirlpool/algo.mk

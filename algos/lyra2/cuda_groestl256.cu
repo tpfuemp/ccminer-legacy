@@ -662,7 +662,7 @@ void groestl256_perm_Q(uint32_t thread, uint32_t *a, char *mixtabs)
 
 /* resNonce[0] counts candidates, resNonce[1..GROESTL256_MAX_RESULTS-1] hold them */
 __global__ __launch_bounds__(GROESTL256_TPB, 1)
-void groestl256_gpu_hash_32(uint32_t threads, uint32_t startNounce, uint64_t *outputHash, uint32_t *resNonce)
+void groestl256_gpu_hash_32(uint32_t threads, uint32_t count, uint32_t startNounce, uint64_t *outputHash, uint32_t *resNonce)
 {
 	__shared__ char mixtabs[8 * 256 * sizeof(uint32_t)];
 
@@ -708,8 +708,9 @@ void groestl256_gpu_hash_32(uint32_t threads, uint32_t startNounce, uint64_t *ou
 		state[14] ^= message[14];
 		state[15] ^= message[15];
 
-		// top 64 bits of the hash against target words 6..7
-		if (state[15] < pTarget[7] || (state[15] == pTarget[7] && state[14] <= pTarget[6])) {
+		// top 64 bits against target words 6..7; padding lanes past count never report
+		if (thread < count &&
+		    (state[15] < pTarget[7] || (state[15] == pTarget[7] && state[14] <= pTarget[6]))) {
 			const uint32_t pos = atomicInc(&resNonce[0], UINT32_MAX) + 1;
 			if (pos < GROESTL256_MAX_RESULTS)
 				resNonce[pos] = startNounce + thread;
@@ -724,11 +725,11 @@ void groestl256_setTarget(const void *pTargetIn)
 }
 
 __host__
-void groestl256_cpu_hash_32(int thr_id, uint32_t threads, uint32_t startNounce, uint64_t *d_outputHash, uint32_t *d_resNonce)
+void groestl256_cpu_hash_32(int thr_id, uint32_t threads, uint32_t count, uint32_t startNounce, uint64_t *d_outputHash, uint32_t *d_resNonce)
 {
 	dim3 grid((threads + GROESTL256_TPB - 1) / GROESTL256_TPB);
 	dim3 block(GROESTL256_TPB);
 
 	cudaMemset(d_resNonce, 0, sizeof(uint32_t));
-	groestl256_gpu_hash_32<<<grid, block>>>(threads, startNounce, d_outputHash, d_resNonce);
+	groestl256_gpu_hash_32<<<grid, block>>>(threads, count, startNounce, d_outputHash, d_resNonce);
 }

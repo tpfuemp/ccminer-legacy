@@ -82,20 +82,17 @@ uint32_t allium_scan(int thr_id, uint32_t threads, uint32_t startNonce,
 	cubehash256_cpu_hash_32(thr_id, n, startNonce, h, 0);
 	lyra2_cpu_hash_32(thr_id, n, h, gtx750ti[thr_id]);
 	skein256_cpu_hash_32(thr_id, n, startNonce, h, 0);
-	groestl256_cpu_hash_32(thr_id, n, startNonce, h, d_resNonce[thr_id]);
+	groestl256_cpu_hash_32(thr_id, n, threads, startNonce, h, d_resNonce[thr_id]);
 
 	cudaMemcpy(res, d_resNonce[thr_id], GROESTL256_MAX_RESULTS * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 	uint32_t found = res[0];
 	if (found > GROESTL256_MAX_RESULTS - 1)
 		found = GROESTL256_MAX_RESULTS - 1;
 
-	// drop the padding nonces past the batch, then sort ascending
-	uint32_t count = 0, all = 0;
+	// ascending; the kernel reports only nonces of the batch, not the padding
+	uint32_t count = 0;
 	for (uint32_t i = 1; i <= found; i++) {
 		const uint32_t nonce = res[i];
-		if (nonce - startNonce >= threads)
-			continue;
-		all++;
 		if (count < max_out) {
 			uint32_t j = count++;
 			while (j > 0 && out[j - 1] > nonce) { out[j] = out[j - 1]; j--; }
@@ -104,7 +101,7 @@ uint32_t allium_scan(int thr_id, uint32_t threads, uint32_t startNonce,
 	}
 	// a flood keeps only the first slots; report it as more than were kept
 	if (total)
-		*total = (res[0] > found) ? res[0] : all;
+		*total = res[0];
 	return count;
 }
 

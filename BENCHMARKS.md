@@ -25,10 +25,12 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | groestl | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 58.5 MH/s | 59.3 MH/s |
 | keccak | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 21.3 MH/s (PTX JIT) | 21.8 MH/s |
 | keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
+| lyra2v2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 658.6 kH/s (PTX JIT) | 649.6 kH/s |
+| lyra2v2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 59.5 MH/s | 66.5 MH/s |
 | myr-gr | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 3.12 MH/s (PTX JIT) | 3.15 MH/s |
 | myr-gr | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 114.0 MH/s | 117.1 MH/s |
 | neoscrypt | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 46.6 kH/s (PTX JIT) | 48.9 kH/s |
-| neoscrypt | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1465 kH/s | 1729 kH/s |
+| neoscrypt | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1559 kH/s | 1743 kH/s |
 | quark | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.083 MH/s (PTX JIT) | 1.096 MH/s |
 | quark | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 45.0 MH/s | 46.7 MH/s |
 | qubit | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.22 MH/s (PTX JIT) | 1.22 MH/s |

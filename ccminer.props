@@ -241,9 +241,18 @@
     <CudaCompile Include="algos\lyra2\cuda_cubehash256.cu" />
     <CudaCompile Include="algos\lyra2\cuda_skein256.cu" />
     <CudaCompile Include="algos\lyra2\cuda_groestl256.cu" />
+    <CudaCompile Include="algos\lyra2\cuda_lyra2v2.cu" />
+    <CudaCompile Include="algos\lyra2\cuda_bmw256.cu" />
     <None Include="algos\lyra2\cuda_lyra2_sm2.cuh" />
     <None Include="algos\lyra2\cuda_lyra2_sm5.cuh" />
+    <None Include="algos\lyra2\cuda_lyra2v2_sm3.cuh" />
     <ClInclude Include="algos\lyra2\cuda_lyra2_vectors.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\lyra2v2\lyra2v2.cu" />
+    <CudaCompile Include="algos\lyra2v2\cuda_lyra2v2_selftest.cu" />
+    <ClCompile Include="algos\lyra2v2\register.cpp" />
+    <ClInclude Include="algos\lyra2v2\lyra2v2.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\quark\quark.cu" />
