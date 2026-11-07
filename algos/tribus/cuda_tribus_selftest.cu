@@ -41,8 +41,9 @@ static bool scan_one(int thr_id, const struct tribus_kat *k, uint64_t high, bool
 	uint32_t out[TRIBUS_MAX_RESULTS], total = 0;
 	tribus_setBlock(thr_id, data, target);
 	const uint32_t count = tribus_scan(thr_id, 1, nonce, high, out, TRIBUS_MAX_RESULTS, &total);
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(thr_id, "tribus", err);
 	*found = (count == 1 && total == 1 && out[0] == nonce);
 	return true;
 }

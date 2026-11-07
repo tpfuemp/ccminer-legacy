@@ -43,8 +43,9 @@ static bool scan_one(int thr_id, const struct lyra2v2_kat *k, uint64_t high, boo
 	uint32_t out[8], total = 0;
 	lyra2v2_setBlock(thr_id, pdata, target);
 	const uint32_t count = lyra2v2_scan(thr_id, 1, nonce, out, 8, &total);
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(thr_id, "lyra2v2", err);
 	*found = (count == 1 && total == 1 && out[0] == nonce);
 	return true;
 }

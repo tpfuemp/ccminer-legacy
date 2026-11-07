@@ -41,8 +41,9 @@ static bool scan_one(int thr_id, const struct quark_kat *k, uint64_t high, bool 
 	uint32_t out[8], total = 0;
 	quark_setBlock(thr_id, data, target);
 	const uint32_t count = quark_scan(thr_id, 1, nonce, out, 8, &total);
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(thr_id, "quark", err);
 	*found = (count == 1 && total == 1 && out[0] == nonce);
 	return true;
 }

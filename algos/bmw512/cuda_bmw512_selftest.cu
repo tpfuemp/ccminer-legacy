@@ -35,8 +35,9 @@ static bool scan_one(const struct bmw512_kat *k, uint64_t target, uint32_t *d_re
 
 	bmw512_cpu_setBlock_80(data);
 	const uint32_t count = bmw512_scan(1, nonce, target, d_res, h_res);
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(-1, "bmw512", err);
 	*found = (count == 1 && h_res[1] == nonce);
 	return true;
 }

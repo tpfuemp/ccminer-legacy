@@ -308,13 +308,14 @@ static bool bc3_selftest_scan(int thr_id, const uint8_t* hdr76, const uint32_t* 
                               uint32_t count, uint8_t* digests, uint32_t* res, int nres)
 {
 	uint8_t* d_dig = NULL;
-	if (cudaMalloc(&d_dig, 32 * (size_t)count) != cudaSuccess) return selftest_cuda_fault();
+	cudaError_t err = cudaMalloc(&d_dig, 32 * (size_t)count);
+	if (err != cudaSuccess) return selftest_cuda_error(thr_id, "bc3hash", err);
 	bc3_set_header(hdr76, target8);
 	bc3_launch(thr_id, count, start, d_dig, NULL);
-	const bool ok = cudaMemcpy(digests, d_dig, 32 * (size_t)count, cudaMemcpyDeviceToHost) == cudaSuccess &&
-	                cudaMemcpy(res, d_res[thr_id], 4 * (size_t)nres, cudaMemcpyDeviceToHost) == cudaSuccess;
+	err = cudaMemcpy(digests, d_dig, 32 * (size_t)count, cudaMemcpyDeviceToHost);
+	if (err == cudaSuccess) err = cudaMemcpy(res, d_res[thr_id], 4 * (size_t)nres, cudaMemcpyDeviceToHost);
 	cudaFree(d_dig);
-	return ok ? true : selftest_cuda_fault();
+	return err == cudaSuccess ? true : selftest_cuda_error(thr_id, "bc3hash", err);
 }
 
 /* the candidate slots as a bit set over [start, start + 64), 0 on a bad entry */
@@ -339,11 +340,13 @@ static bool bc3_device_selftest(int thr_id)
 	/* tables: pow tables read back byte-exact; each curve table spot-checked
 	 * against the coin's curve_multiply at 64 entries over all windows */
 	bool tbl_ok = true;
+	cudaError_t terr = cudaSuccess;
 	for (int w = 0; w < 3 && ran; w++) {
 		size_t bytes;
 		const void* h = bc3hash_pow_table(w, &bytes);
 		void* rb = malloc(bytes);
-		ran = rb && cudaMemcpy(rb, d_pow[thr_id][w], bytes, cudaMemcpyDeviceToHost) == cudaSuccess;
+		if (!rb) selftest_cuda_fault(); /* host memory: could not run */
+		ran = rb && (terr = cudaMemcpy(rb, d_pow[thr_id][w], bytes, cudaMemcpyDeviceToHost)) == cudaSuccess;
 		if (ran && w == 1 && bc3_fault(thr_id, "tables")) ((uint8_t*)rb)[bytes / 2] ^= 1;
 		if (ran && memcmp(rb, h, bytes)) tbl_ok = false;
 		free(rb);
@@ -354,8 +357,8 @@ static bool bc3_device_selftest(int thr_id)
 			const int jbits = j == nwin - 1 ? 256 - W * (nwin - 1) : W;
 			const uint32_t i = 1 + (uint32_t)(((uint64_t)s * 2654435761u) & ((1u << jbits) - 2));
 			uint8_t ent[64];
-			ran = cudaMemcpy(ent, d_curve[thr_id][p] + (((size_t)j << W) + i) * BC3_EC_ENTRY, 64,
-			                 cudaMemcpyDeviceToHost) == cudaSuccess;
+			ran = (terr = cudaMemcpy(ent, d_curve[thr_id][p] + (((size_t)j << W) + i) * BC3_EC_ENTRY, 64,
+			                         cudaMemcpyDeviceToHost)) == cudaSuccess;
 			uint32_t k[8] = { 0 }, x[8], y[8];
 			const uint64_t kv = (uint64_t)i << ((j * W) & 31); /* i * 2^(jW) */
 			k[(j * W) >> 5] = (uint32_t)kv;
@@ -367,7 +370,7 @@ static bool bc3_device_selftest(int thr_id)
 				if (ent[b] != xb || ent[32 + b] != yb) tbl_ok = false;
 			}
 		}
-	if (!ran) selftest_cuda_fault();
+	if (terr != cudaSuccess) selftest_cuda_error(thr_id, "bc3hash", terr);
 
 	/* kat: each vector through the scan kernels at its own nonce; the all-ones
 	 * target makes it a candidate, so the report path is exercised too.

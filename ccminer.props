@@ -232,8 +232,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="algos\lyra2\Lyra2.c" />
+    <ClCompile Include="algos\lyra2\Lyra2Z.c" />
     <ClCompile Include="algos\lyra2\Sponge.c" />
     <ClInclude Include="algos\lyra2\Lyra2.h" />
+    <ClInclude Include="algos\lyra2\Lyra2Z.h" />
     <ClInclude Include="algos\lyra2\Sponge.h" />
     <ClInclude Include="algos\lyra2\cuda_lyra2.h" />
     <CudaCompile Include="algos\lyra2\cuda_lyra2.cu" />
@@ -243,6 +245,8 @@
     <CudaCompile Include="algos\lyra2\cuda_groestl256.cu" />
     <CudaCompile Include="algos\lyra2\cuda_lyra2v2.cu" />
     <CudaCompile Include="algos\lyra2\cuda_bmw256.cu" />
+    <CudaCompile Include="algos\lyra2\cuda_lyra2z330.cu" />
+    <ClInclude Include="algos\lyra2\cuda_lyra2z330.h" />
     <None Include="algos\lyra2\cuda_lyra2_sm2.cuh" />
     <None Include="algos\lyra2\cuda_lyra2_sm5.cuh" />
     <None Include="algos\lyra2\cuda_lyra2v2_sm3.cuh" />
@@ -253,6 +257,12 @@
     <CudaCompile Include="algos\lyra2v2\cuda_lyra2v2_selftest.cu" />
     <ClCompile Include="algos\lyra2v2\register.cpp" />
     <ClInclude Include="algos\lyra2v2\lyra2v2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\lyra2z330\lyra2z330.cu" />
+    <CudaCompile Include="algos\lyra2z330\cuda_lyra2z330_selftest.cu" />
+    <ClCompile Include="algos\lyra2z330\register.cpp" />
+    <ClInclude Include="algos\lyra2z330\lyra2z330.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\quark\quark.cu" />

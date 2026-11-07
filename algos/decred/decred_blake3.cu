@@ -99,16 +99,18 @@ static bool decred_selftest_device(const uint32_t *pdata, uint32_t nonce, uint8_
 	decred_blake3_cpu_setBlock(pdata);
 
 	uint8_t *d_out = NULL;
-	if (cudaMalloc(&d_out, 32) != cudaSuccess)
-		return selftest_cuda_fault();
+	cudaError_t err = cudaMalloc(&d_out, 32);
+	if (err != cudaSuccess)
+		return selftest_cuda_error(-1, "decred", err);
 
 	decred_blake3_selftest_kernel <<< 1, 1 >>> (nonce, d_out);
 
-	const bool ok = cudaDeviceSynchronize() == cudaSuccess
-	             && cudaMemcpy(out32, d_out, 32, cudaMemcpyDeviceToHost) == cudaSuccess;
+	err = cudaDeviceSynchronize();
+	if (err == cudaSuccess)
+		err = cudaMemcpy(out32, d_out, 32, cudaMemcpyDeviceToHost);
 	cudaFree(d_out);
 
-	return ok ? true : selftest_cuda_fault();
+	return err == cudaSuccess ? true : selftest_cuda_error(-1, "decred", err);
 }
 
 static void to_hex(char *hex, const uint8_t *bin, int len)
@@ -139,8 +141,9 @@ static bool decred_selftest_scan(int thr_id, const uint32_t *pdata, uint64_t hig
 	decred_blake3_cpu_setBlock(pdata);
 	*hit = decred_blake3_scan(thr_id, nonce, 1, high, res) == 1 && res[1] == nonce;
 	*miss = decred_blake3_scan(thr_id, nonce, 1, high - 1, res) != 0;
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(thr_id, "decred", err);
 	return true;
 }
 

@@ -149,19 +149,20 @@ static bool sha256_selftest_vector(const uint8_t m[80], const uint32_t *expected
 	// device: full = host, truncated = full words 6/7, prehash = full first hash
 	uint32_t out[SELFTEST_OUT_WORDS] = { 0 };
 	uint32_t *d_buf = NULL;
-	bool gpu_ok = false;
-	if (cudaMalloc(&d_buf, sizeof(inbuf) + sizeof(out)) != cudaSuccess) {
-		selftest_cuda_fault(); // could not run != produced a wrong digest
-	} else {
+	cudaError_t err = cudaMalloc(&d_buf, sizeof(inbuf) + sizeof(out));
+	if (err == cudaSuccess) {
 		uint32_t *d_out = d_buf + SELFTEST_IN_WORDS;
-		gpu_ok = (cudaMemcpy(d_buf, inbuf, sizeof(inbuf), cudaMemcpyHostToDevice) == cudaSuccess);
-		sha256_selftest_gpu <<<1, 1>>> (d_buf, d_out);
-		gpu_ok = gpu_ok && (cudaMemcpy(out, d_out, sizeof(out), cudaMemcpyDeviceToHost) == cudaSuccess);
+		err = cudaMemcpy(d_buf, inbuf, sizeof(inbuf), cudaMemcpyHostToDevice);
+		if (err == cudaSuccess) {
+			sha256_selftest_gpu <<<1, 1>>> (d_buf, d_out);
+			// a launch failure surfaces here
+			err = cudaMemcpy(out, d_out, sizeof(out), cudaMemcpyDeviceToHost);
+		}
 		cudaFree(d_buf);
 	}
-	if (!gpu_ok)
-		selftest_cuda_fault(); // a failed copy is not a wrong digest either
-	gpu_ok = gpu_ok && (memcmp(out, st2, 32) == 0)
+	if (err != cudaSuccess)
+		selftest_cuda_error(-1, "SHA256", err);
+	bool gpu_ok = err == cudaSuccess && (memcmp(out, st2, 32) == 0)
 	                && out[8] == st2[6] && out[9] == st2[7]
 	                && (memcmp(out + 10, st, 32) == 0);
 

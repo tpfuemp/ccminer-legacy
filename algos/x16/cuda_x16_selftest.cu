@@ -28,8 +28,9 @@ static bool scan_one(int thr_id, int variant, const uint8_t *header, uint64_t hi
 	uint32_t out[8], total = 0;
 	x16_setBlock(thr_id, variant, data, target);
 	const uint32_t count = x16_scan(thr_id, 1, nonce, out, 8, &total);
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(thr_id, "x16", err);
 	*found = (count == 1 && total == 1 && out[0] == nonce);
 	return true;
 }

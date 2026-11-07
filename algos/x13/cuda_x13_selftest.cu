@@ -41,8 +41,9 @@ static bool scan_one(int thr_id, const struct x13_kat *k, uint64_t high, bool *f
 	uint32_t out[8], total = 0;
 	x13_setBlock(thr_id, data, target);
 	const uint32_t count = x13_scan(thr_id, 1, nonce, out, 8, &total);
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(thr_id, "x13", err);
 	*found = (count == 1 && total == 1 && out[0] == nonce);
 	return true;
 }

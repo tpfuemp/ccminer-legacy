@@ -21,6 +21,19 @@ static inline bool selftest_cuda_fault(void)
 	return false;
 }
 
+/* A CUDA error in a self-test: out of memory is "could not run", anything else (launch
+ * failure, illegal address, watchdog) fails the test. Logs it, returns false. */
+static inline bool selftest_cuda_error(int thr_id, const char *name, cudaError_t err)
+{
+	if (thr_id < 0)
+		applog(LOG_ERR, "%s self-test: %s", name, cudaGetErrorString(err));
+	else
+		gpulog(LOG_ERR, thr_id, "%s self-test: %s", name, cudaGetErrorString(err));
+	if (err == cudaErrorMemoryAllocation)
+		s_selftest_cuda_fault = true;
+	return false;
+}
+
 /* returns `passed`; exits on a genuine mismatch */
 static inline bool selftest_gate(int thr_id, const char *name, bool passed)
 {

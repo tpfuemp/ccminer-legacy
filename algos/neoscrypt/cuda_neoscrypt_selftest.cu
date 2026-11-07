@@ -39,8 +39,9 @@ static bool scan_at(int thr_id, const struct neoscrypt_kat *k, uint32_t before, 
 
 	neoscrypt_setBlock(data);
 	const uint32_t count = neoscrypt_scan(thr_id, threads, nonce - before, target, d_res, h_res);
-	if (cudaGetLastError() != cudaSuccess)
-		return selftest_cuda_fault();
+	const cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess)
+		return selftest_cuda_error(thr_id, "neoscrypt", err);
 	*found = (count == 1 && h_res[1] == nonce);
 	return true;
 }
