@@ -30,6 +30,8 @@ Third-party code (BSD)
 NeoScrypt CPU reference (algos/neoscrypt/neoscrypt-cpu.c) by Colin Percival,
 ArtForz, Andrew Moon, Samuel Neves and John Doering, 2-clause BSD license in
 the file header.
+yescrypt CPU reference (algos/yescrypt/yescrypt-*.c, sha256_Y.c) by Colin
+Percival and Alexander Peslyak, 2-clause BSD license in the file headers.
 
 Donation
 --------

@@ -57,6 +57,11 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | x16rv2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 31.9 MH/s | 32.8 MH/s |
 | x16s | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.397 MH/s (PTX JIT) | 0.400 MH/s |
 | x16s | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 15.1 MH/s | 15.2 MH/s |
+| yescryptr8 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | - | 155 H/s |
+| yescryptr8 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | - | 17.4 kH/s |
+| yescryptr16 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | - | 37 H/s |
+| yescryptr16 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | - | 2466 H/s |
+| yescryptr32 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | - | 940 H/s |
 
 x16r, x16rv2 and x16s benchmark one fixed hash order, the same as tpruvot's
 ccminer (x16r and x16rv2: ECHO, then 15 times BLAKE; x16s: the order of a zero

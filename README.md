@@ -80,6 +80,12 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `x16rt` | X16RT, X16R with the order taken from the block time |
 | `x16rv2` | X16RV2, X16R with Tiger-192 before Keccak, Luffa and SHA-512 |
 | `x16s` | X16S, X16R with the order shuffled by the prevhash |
+| `yescrypt` | yescrypt N 2048 r 8 (GlobalBoost-Y); other parameters with `--yescrypt-param N,r,p` and `--yescrypt-key` |
+| `yescryptr8` | yescrypt N 2048 r 8 with client key (BitZeny) |
+| `yescryptr16` | yescrypt N 4096 r 16 with client key (Yenten) |
+| `yescryptr16v2` | yescrypt N 4096 r 16 p 4 with client key (PPTP) |
+| `yescryptr24` | yescrypt N 4096 r 24 with client key (JagariCoinR) |
+| `yescryptr32` | yescrypt N 4096 r 32 with client key (WAVI) |
 
 Run `ccminer --help` for the authoritative list.
 

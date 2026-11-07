@@ -265,6 +265,20 @@
     <ClInclude Include="algos\lyra2z330\lyra2z330.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\yescrypt\yescrypt.cu" />
+    <CudaCompile Include="algos\yescrypt\cuda_yescrypt.cu" />
+    <CudaCompile Include="algos\yescrypt\cuda_yescrypt_selftest.cu" />
+    <ClCompile Include="algos\yescrypt\register.cpp" />
+    <ClCompile Include="algos\yescrypt\yescrypt-common.c" />
+    <ClCompile Include="algos\yescrypt\yescrypt-opt.c" />
+    <ClCompile Include="algos\yescrypt\sha256_Y.c" />
+    <ClInclude Include="algos\yescrypt\sha256_Y.h" />
+    <ClInclude Include="algos\yescrypt\yescrypt.h" />
+    <ClInclude Include="algos\yescrypt\yescrypt-platform.h" />
+    <ClInclude Include="algos\yescrypt\cuda_yescrypt.h" />
+    <ClInclude Include="algos\yescrypt\yescrypt_algo.h" />
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\quark\quark.cu" />
     <CudaCompile Include="algos\quark\cuda_quark_split.cu" />
     <CudaCompile Include="algos\quark\cuda_quark_selftest.cu" />

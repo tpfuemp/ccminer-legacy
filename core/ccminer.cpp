@@ -2734,12 +2734,6 @@ static void *miner_thread(void *userdata)
 			case ALGO_VELTOR:
 				minmax = 0x80000;
 				break;
-			case ALGO_YESCRYPT:
-			case ALGO_YESCRYPTR8:
-			case ALGO_YESCRYPTR16:
-			case ALGO_YESCRYPTR16V2:
-			case ALGO_YESCRYPTR24:
-			case ALGO_YESCRYPTR32:
 				case ALGO_YESPOWER:
 				case ALGO_YESPOWERR16:
 				case ALGO_POWER2B:
@@ -2752,6 +2746,12 @@ static void *miner_thread(void *userdata)
 			case ALGO_CRYPTONIGHT:
 			case ALGO_SCRYPT_JANE:
 			case ALGO_LYRA2Z330:  // ~7.7 MB matrix per hash, so VRAM caps it at a few kH/s
+			case ALGO_YESCRYPT:   // 0.1-1 MiB per hash, a few hundred H/s on small GPUs
+			case ALGO_YESCRYPTR8:
+			case ALGO_YESCRYPTR16:
+			case ALGO_YESCRYPTR16V2:
+			case ALGO_YESCRYPTR24:
+			case ALGO_YESCRYPTR32:
 				minmax = 0x1000;
 				break;
 			}
