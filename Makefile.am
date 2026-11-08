@@ -62,6 +62,7 @@ include $(srcdir)/algos/tribus/algo.mk
 include $(srcdir)/algos/whirlpool/algo.mk
 include $(srcdir)/algos/x11/algo.mk
 include $(srcdir)/algos/x13/algo.mk
+include $(srcdir)/algos/skein2/algo.mk
 include $(srcdir)/algos/x16/algo.mk
 include $(srcdir)/algos/yescrypt/algo.mk
 include $(srcdir)/algos/neoscrypt/algo.mk

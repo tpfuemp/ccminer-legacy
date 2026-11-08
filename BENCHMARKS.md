@@ -41,6 +41,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | sha256d | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1687 MH/s | 1856 MH/s |
 | skein | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 22.2 MH/s (PTX JIT) | 22.6 MH/s |
 | skein | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 579 MH/s | 653 MH/s |
+| skein2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 20.04 MH/s (PTX JIT) | 20.02 MH/s |
+| skein2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 589.5 MH/s | 589.4 MH/s |
 | tribus | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 2.22 MH/s (PTX JIT) | 2.24 MH/s |
 | tribus | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 100.7 MH/s | 95.5 MH/s |
 | whirlpool | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.664 MH/s (PTX JIT) | 0.657 MH/s |

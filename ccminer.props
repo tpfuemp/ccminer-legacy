@@ -265,6 +265,12 @@
     <ClInclude Include="algos\lyra2z330\lyra2z330.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\skein2\skein2.cu" />
+    <CudaCompile Include="algos\skein2\cuda_skein2_selftest.cu" />
+    <ClCompile Include="algos\skein2\register.cpp" />
+    <ClInclude Include="algos\skein2\skein2.h" />
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\yescrypt\yescrypt.cu" />
     <CudaCompile Include="algos\yescrypt\cuda_yescrypt.cu" />
     <CudaCompile Include="algos\yescrypt\cuda_yescrypt_selftest.cu" />

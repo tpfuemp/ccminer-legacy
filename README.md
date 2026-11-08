@@ -71,6 +71,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `qubit` | Luffa + CubeHash + SHAvite + SIMD + ECHO, 512 bits each (Qubit) |
 | `sha256d` | SHA256d (Bitcoin) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
+| `skein2` | Skein-512 twice (Woodcoin) |
 | `tribus` | JH-512 + Keccak-512 + ECHO-512 (Denarius) |
 | `whirlcoin` | 4x Whirlpool-T (Whirlcoin), same as `whirlpool` |
 | `whirlpool` | 4x Whirlpool-T (old whirlpool) |
