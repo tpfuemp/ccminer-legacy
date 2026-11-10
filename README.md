@@ -62,6 +62,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `groestl` | Double Groestl-512 (Groestlcoin) |
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
+| `lbry` | SHA-256d + SHA-512 + 2x RIPEMD-160 + SHA-256d over the 112-byte header (LBRY Credits) |
 | `lyra2v2` | Lyra2REv2: BLAKE-256, Keccak-256, CubeHash-256, Lyra2, Skein-256, CubeHash-256, BMW-256 (Monacoin), alias `lyra2rev2` |
 | `lyra2z330` | Lyra2 over the header, 330 rows x 256 blocks, 7.7 MiB per hash (Gravity) |
 | `myr-gr` | Groestl-512 + SHA256 (Myriad) |

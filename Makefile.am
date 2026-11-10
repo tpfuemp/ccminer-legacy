@@ -29,11 +29,11 @@ ccminer_SOURCES = \
 	cuda/blake3_device.cuh cuda/cuda_compat.h cuda/cuda_helper.h cuda/cuda_vector_uint2x4.h \
 	cuda/selftest_gate.cuh cuda/sha256_device.cuh \
 	sph/blake.c sph/bmw.c sph/cubehash.c sph/echo.c sph/fugue.c sph/groestl.c sph/hamsi.c \
-	sph/jh.c sph/keccak.c sph/luffa.c sph/sha2big.c sph/shabal.c sph/shavite.c sph/simd.c \
-	sph/skein.c sph/tiger.c sph/whirlpool.c \
+	sph/jh.c sph/keccak.c sph/luffa.c sph/ripemd.c sph/sha2big.c sph/shabal.c sph/shavite.c \
+	sph/simd.c sph/skein.c sph/sph_sha2.c sph/tiger.c sph/whirlpool.c \
 	sph/sph_blake.h sph/sph_bmw.h sph/sph_cubehash.h sph/sph_echo.h sph/sph_fugue.h \
 	sph/sph_groestl.h sph/sph_hamsi.h sph/sph_jh.h sph/sph_keccak.h sph/sph_luffa.h \
-	sph/sph_sha2.h sph/sph_shabal.h sph/sph_shavite.h sph/sph_simd.h sph/sph_skein.h \
+	sph/sph_ripemd.h sph/sph_sha2.h sph/sph_shabal.h sph/sph_shavite.h sph/sph_simd.h sph/sph_skein.h \
 	sph/sph_tiger.h sph/sph_types.h sph/sph_whirlpool.h
 
 # included by sph sources, not compiled on its own
@@ -57,6 +57,7 @@ include $(srcdir)/algos/keccak/algo.mk
 include $(srcdir)/algos/lyra2/algo.mk
 include $(srcdir)/algos/lyra2v2/algo.mk
 include $(srcdir)/algos/lyra2z330/algo.mk
+include $(srcdir)/algos/lbry/algo.mk
 include $(srcdir)/algos/skein/algo.mk
 include $(srcdir)/algos/tribus/algo.mk
 include $(srcdir)/algos/whirlpool/algo.mk

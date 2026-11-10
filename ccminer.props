@@ -158,11 +158,13 @@
     <ClCompile Include="sph\jh.c" />
     <ClCompile Include="sph\keccak.c" />
     <ClCompile Include="sph\luffa.c" />
+    <ClCompile Include="sph\ripemd.c" />
     <ClCompile Include="sph\sha2big.c" />
     <ClCompile Include="sph\shabal.c" />
     <ClCompile Include="sph\shavite.c" />
     <ClCompile Include="sph\simd.c" />
     <ClCompile Include="sph\skein.c" />
+    <ClCompile Include="sph\sph_sha2.c" />
     <ClCompile Include="sph\tiger.c" />
     <ClCompile Include="sph\whirlpool.c" />
     <None Include="sph\aes_helper.c" />
@@ -178,6 +180,7 @@
     <ClInclude Include="sph\sph_jh.h" />
     <ClInclude Include="sph\sph_keccak.h" />
     <ClInclude Include="sph\sph_luffa.h" />
+    <ClInclude Include="sph\sph_ripemd.h" />
     <ClInclude Include="sph\sph_sha2.h" />
     <ClInclude Include="sph\sph_shabal.h" />
     <ClInclude Include="sph\sph_shavite.h" />
@@ -263,6 +266,15 @@
     <CudaCompile Include="algos\lyra2z330\cuda_lyra2z330_selftest.cu" />
     <ClCompile Include="algos\lyra2z330\register.cpp" />
     <ClInclude Include="algos\lyra2z330\lyra2z330.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\lbry\lbry.cu" />
+    <CudaCompile Include="algos\lbry\cuda_lbry_merged.cu" />
+    <CudaCompile Include="algos\lbry\cuda_sha256_lbry.cu" />
+    <CudaCompile Include="algos\lbry\cuda_sha512_lbry.cu" />
+    <CudaCompile Include="algos\lbry\cuda_lbry_selftest.cu" />
+    <ClCompile Include="algos\lbry\register.cpp" />
+    <ClInclude Include="algos\lbry\lbry.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\skein2\skein2.cu" />

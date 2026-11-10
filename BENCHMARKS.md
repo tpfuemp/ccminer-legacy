@@ -3,7 +3,8 @@ Tested hardware
 
 `--benchmark` with the default intensity, release builds, 60 s runs
 (`--time-limit=60`). Fast cards throttle as they heat up, so compare runs
-only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
+only from the same start temperature (GTX 1080 Ti: blakecoin, lbry and
+timetravel 50 C, others 55 C):
 
 | Algorithm | GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
 |---|---|---|---|---|---|
@@ -25,6 +26,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | groestl | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 58.5 MH/s | 59.3 MH/s |
 | keccak | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 21.3 MH/s (PTX JIT) | 21.8 MH/s |
 | keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
+| lbry | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 9.43 MH/s (PTX JIT) | 9.47 MH/s |
+| lbry | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 462.5 MH/s | 484.7 MH/s |
 | lyra2v2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 658.6 kH/s (PTX JIT) | 649.6 kH/s |
 | lyra2v2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 59.5 MH/s | 66.5 MH/s |
 | lyra2z330 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 237 H/s (PTX JIT) | 237 H/s |
@@ -43,6 +46,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 | skein | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 579 MH/s | 653 MH/s |
 | skein2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 20.04 MH/s (PTX JIT) | 20.02 MH/s |
 | skein2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 589.5 MH/s | 589.4 MH/s |
+| timetravel | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.214 MH/s (PTX JIT) | 1.220 MH/s |
+| timetravel | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 45.9 MH/s | 46.9 MH/s |
 | tribus | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 2.22 MH/s (PTX JIT) | 2.24 MH/s |
 | tribus | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 100.7 MH/s | 95.5 MH/s |
 | whirlpool | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.664 MH/s (PTX JIT) | 0.657 MH/s |
@@ -67,8 +72,8 @@ only from the same start temperature (GTX 1080 Ti: blakecoin 50 C, others 55 C):
 
 x16r, x16rv2 and x16s benchmark one fixed hash order, the same as tpruvot's
 ccminer (x16r and x16rv2: ECHO, then 15 times BLAKE; x16s: the order of a zero
-previous block hash). x16rt benchmarks the order of the fixed benchmark block
-time. When mining, the order changes with the block (x16rt: every 128 s), so
+previous block hash). x16rt and timetravel benchmark the order of the fixed
+benchmark block time. When mining, the order changes with the block (x16rt: every 128 s), so
 the rate varies: pool runs gave 30 to 60 % of the benchmark rate for x16rv2
 and 50 to 110 % for x16rt.
 

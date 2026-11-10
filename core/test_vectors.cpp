@@ -28,6 +28,9 @@ static struct header_layout layout_of(int algo_id)
 		l.len = 180;
 		l.nonce_word = 35;
 		l.le_words = true;
+	} else if (algo_id == ALGO_LBRY) {
+		l.len = 112;
+		l.nonce_word = 27;
 	}
 	return l;
 }
@@ -55,7 +58,9 @@ static bool gpu_check(int thr_id, const struct algo_desc *algo, const struct hea
 	memset(&work, 0, sizeof(work));
 	for (int i = 0; i < l->len / 4; i++)
 		work.data[i] = l->le_words ? le32dec(header + 4 * i) : be32dec(header + 4 * i);
-	if (!l->le_words) {
+	if (algo->id == ALGO_LBRY) {
+		work.data[28] = 0x80000000; // as stratum_gen_work() sets it
+	} else if (!l->le_words) {
 		// SHA-256 padding of the 80-byte header, as stratum_gen_work() sets it
 		work.data[20] = 0x80000000;
 		work.data[31] = 0x00000280;
