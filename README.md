@@ -72,6 +72,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `sha256d` | SHA256d (Bitcoin) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
 | `skein2` | Skein-512 twice (Woodcoin) |
+| `timetravel` | Timetravel, 8 of the X16R blocks in an order picked by the block time (Machinecoin) |
 | `tribus` | JH-512 + Keccak-512 + ECHO-512 (Denarius) |
 | `whirlcoin` | 4x Whirlpool-T (Whirlcoin), same as `whirlpool` |
 | `whirlpool` | 4x Whirlpool-T (old whirlpool) |

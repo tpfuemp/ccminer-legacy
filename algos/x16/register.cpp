@@ -9,6 +9,8 @@ ALGO_REGISTER(ALGO_X16RV2, scanhash_x16rv2, free_x16rv2, x16rv2_hash,
 	"X16RV2, X16R with Tiger-192 before Keccak, Luffa and SHA-512");
 ALGO_REGISTER(ALGO_X16RT, scanhash_x16rt, free_x16rt, x16rt_hash,
 	"X16RT, X16R with the order taken from the block time");
+ALGO_REGISTER(ALGO_TIMETRAVEL, scanhash_timetravel, free_timetravel, timetravel_hash,
+	"Timetravel, 8 of the X16R blocks in an order picked by the block time (Machinecoin)");
 
 // Bitcoin genesis header with a fixed prevhash (first block ECHO, SHA-512, Tiger+Keccak;
 // x16rt: ECHO from the genesis time), nonce giving a hash below 2^232
@@ -30,3 +32,12 @@ ALGO_TEST_VECTORS(ALGO_X16R, x16r_tests);
 ALGO_TEST_VECTORS(ALGO_X16S, x16s_tests);
 ALGO_TEST_VECTORS(ALGO_X16RV2, x16rv2_tests);
 ALGO_TEST_VECTORS(ALGO_X16RT, x16rt_tests);
+
+// Bitcoin genesis header with ntime 0x69000000 (order BMW first), hash below 2^232
+static const struct algo_test_vector timetravel_tests[] = {
+	{ "01000000" "0000000000000000000000000000000000000000000000000000000000000000"
+	  "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"
+	  "00000069" "ffff001d" "00238e49",
+	  "b3cef4760ffdaec27b18f0c0665e86420bb04a30d34e9b24ee3f12fba0000000" },
+};
+ALGO_TEST_VECTORS(ALGO_TIMETRAVEL, timetravel_tests);

@@ -1,7 +1,8 @@
 /**
  * X16R, X16S, X16RV2 and X16RT: 16 chained 512-bit hashes of the 80-byte header in an
  * order picked from the previous block hash (X16RT: from the block time). X16RV2 hashes
- * Tiger-192 (zero-padded to 64 bytes) before Keccak, Luffa and SHA-512.
+ * Tiger-192 (zero-padded to 64 bytes) before Keccak, Luffa and SHA-512. Timetravel: 8 of
+ * the blocks in an order picked by the block time.
  */
 extern "C" {
 #include "sph/sph_blake.h"
@@ -44,8 +45,35 @@ static const char *const algo_names[HASH_FUNC_COUNT] = {
 	"shavite", "simd", "echo", "hamsi", "fugue", "shabal", "whirlpool", "sha512"
 };
 
+int x16_steps(int variant)
+{
+	return variant == X16_TT ? 8 : HASH_FUNC_COUNT;
+}
+
+/* timetravel: permutation number (ntime - 1389040865) mod 8! of the blocks BLAKE, BMW,
+ * Groestl, Skein, JH, Keccak, Luffa, CubeHash, in lexicographic order */
+static void tt_order(uint32_t ntime, uint8_t order[16])
+{
+	static const uint32_t fact[8] = { 5040, 720, 120, 24, 6, 2, 1, 1 };
+	uint8_t pool[8] = { BLAKE, BMW, GROESTL, SKEIN, JH, KECCAK, LUFFA, CUBEHASH };
+	uint32_t seq = (ntime - 1389040865U) % 40320U;
+	int n = 8;
+	for (int i = 0; i < 8; i++) {
+		const uint32_t idx = seq / fact[i];
+		seq %= fact[i];
+		order[i] = pool[idx];
+		for (int j = (int) idx; j < n - 1; j++)
+			pool[j] = pool[j + 1];
+		n--;
+	}
+}
+
 void x16_order(int variant, const uint8_t *header80, uint8_t order[16])
 {
+	if (variant == X16_TT) {
+		tt_order(le32dec(header80 + 68), order);
+		return;
+	}
 	const uint8_t *prev = header80 + 4;
 	uint8_t time_hash[32];
 	if (variant == X16_RT) {
@@ -94,7 +122,8 @@ void x16_hash(int variant, void *output, const void *input)
 
 	const void *in = input;
 	size_t size = 80;
-	for (int i = 0; i < HASH_FUNC_COUNT; i++) {
+	const int steps = x16_steps(variant);
+	for (int i = 0; i < steps; i++) {
 		if (variant == X16_RV2 && (order[i] == KECCAK || order[i] == LUFFA || order[i] == SHA512)) {
 			tiger_pad64(in, size, tmp);
 			in = tmp;
@@ -130,6 +159,7 @@ extern "C" void x16r_hash(void *output, const void *input) { x16_hash(X16_R, out
 extern "C" void x16s_hash(void *output, const void *input) { x16_hash(X16_S, output, input); }
 extern "C" void x16rv2_hash(void *output, const void *input) { x16_hash(X16_RV2, output, input); }
 extern "C" void x16rt_hash(void *output, const void *input) { x16_hash(X16_RT, output, input); }
+extern "C" void timetravel_hash(void *output, const void *input) { x16_hash(X16_TT, output, input); }
 
 static uint32_t *d_hash[MAX_GPUS];
 static int s_variant[MAX_GPUS];
@@ -236,7 +266,8 @@ uint32_t x16_scan(int thr_id, uint32_t threads, uint32_t startNonce,
 	const int variant = s_variant[thr_id];
 	const uint8_t *order = s_order[thr_id];
 	hash_80(thr_id, variant, order[0], threads, startNonce, h);
-	for (int i = 1; i < HASH_FUNC_COUNT; i++) {
+	const int steps = x16_steps(variant);
+	for (int i = 1; i < steps; i++) {
 		const uint8_t a = order[i];
 		if (variant == X16_RV2 && (a == KECCAK || a == LUFFA || a == SHA512))
 			tiger192_cpu_hash_64(thr_id, (int) threads, 1, h);
@@ -314,9 +345,10 @@ static int scanhash_x16(int variant, int thr_id, struct work* work, uint32_t max
 	x16_setBlock(thr_id, variant, endiandata, ptarget);
 	if (opt_debug && !thr_id) {
 		char s[HASH_FUNC_COUNT + 1];
-		for (int i = 0; i < HASH_FUNC_COUNT; i++)
+		const int steps = x16_steps(variant);
+		for (int i = 0; i < steps; i++)
 			s[i] = "0123456789ABCDEF"[s_order[thr_id][i]];
-		s[HASH_FUNC_COUNT] = '\0';
+		s[steps] = '\0';
 		applog(LOG_DEBUG, "hash order %s (first %s)", s, algo_names[s_order[thr_id][0]]);
 	}
 
@@ -399,7 +431,12 @@ extern "C" int scanhash_x16rt(int thr_id, struct work* work, uint32_t max_nonce,
 	return scanhash_x16(X16_RT, thr_id, work, max_nonce, hashes_done);
 }
 
-// cleanup, shared by the four algos
+extern "C" int scanhash_timetravel(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done)
+{
+	return scanhash_x16(X16_TT, thr_id, work, max_nonce, hashes_done);
+}
+
+// cleanup, shared by the five algos
 static void free_x16(int thr_id)
 {
 	if (!init[thr_id])
@@ -421,3 +458,4 @@ extern "C" void free_x16r(int thr_id) { free_x16(thr_id); }
 extern "C" void free_x16s(int thr_id) { free_x16(thr_id); }
 extern "C" void free_x16rv2(int thr_id) { free_x16(thr_id); }
 extern "C" void free_x16rt(int thr_id) { free_x16(thr_id); }
+extern "C" void free_timetravel(int thr_id) { free_x16(thr_id); }
