@@ -19,11 +19,16 @@ struct header_layout {
 	int len;
 	int nonce_word;
 	bool le_words; /* data[] holds the raw little-endian words (decred) */
+	bool le_nonce; /* the nonce is hashed little-endian (verthash) */
 };
+
+#ifdef WITH_VERTHASH
+bool verthash_data_ready(void);
+#endif
 
 static struct header_layout layout_of(int algo_id)
 {
-	struct header_layout l = { 80, 19, false };
+	struct header_layout l = { 80, 19, false, false };
 	if (algo_id == ALGO_DECRED) {
 		l.len = 180;
 		l.nonce_word = 35;
@@ -31,6 +36,8 @@ static struct header_layout layout_of(int algo_id)
 	} else if (algo_id == ALGO_LBRY) {
 		l.len = 112;
 		l.nonce_word = 27;
+	} else if (algo_id == ALGO_VERTHASH) {
+		l.le_nonce = true;
 	}
 	return l;
 }
@@ -58,6 +65,8 @@ static bool gpu_check(int thr_id, const struct algo_desc *algo, const struct hea
 	memset(&work, 0, sizeof(work));
 	for (int i = 0; i < l->len / 4; i++)
 		work.data[i] = l->le_words ? le32dec(header + 4 * i) : be32dec(header + 4 * i);
+	if (l->le_nonce)
+		work.data[l->nonce_word] = le32dec(header + 4 * l->nonce_word);
 	if (algo->id == ALGO_LBRY) {
 		work.data[28] = 0x80000000; // as stratum_gen_work() sets it
 	} else if (!l->le_words) {
@@ -89,7 +98,7 @@ static bool gpu_check(int thr_id, const struct algo_desc *algo, const struct hea
 			uint8_t buf[MAX_HEADER];
 			uint32_t _ALIGN(64) out[16];
 			memcpy(buf, header, l->len);
-			if (l->le_words)
+			if (l->le_words || l->le_nonce)
 				le32enc(buf + 4 * l->nonce_word, work.nonces[n]);
 			else
 				be32enc(buf + 4 * l->nonce_word, work.nonces[n]);
@@ -124,6 +133,12 @@ int run_test_vectors(void)
 			applog(LOG_WARNING, "%s: no test vectors", algo_names[id]);
 			continue;
 		}
+#ifdef WITH_VERTHASH
+		if (id == ALGO_VERTHASH && !verthash_data_ready()) {
+			applog(LOG_WARNING, "%s: skipped, no data file", algo_names[id]);
+			continue;
+		}
+#endif
 		const struct header_layout l = layout_of(id);
 		for (int i = 0; i < count; i++) {
 			uint8_t header[MAX_HEADER], hash[32];

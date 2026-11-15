@@ -3,8 +3,8 @@ Tested hardware
 
 `--benchmark` with the default intensity, release builds, 60 s runs
 (`--time-limit=60`). Fast cards throttle as they heat up, so compare runs
-only from the same start temperature (GTX 1080 Ti: blakecoin, hmq1725, lbry
-and timetravel 50 C, others 55 C):
+only from the same start temperature (GTX 1080 Ti: blakecoin, hmq1725, lbry,
+timetravel and verthash 50 C, others 55 C):
 
 | Algorithm | GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
 |---|---|---|---|---|---|
@@ -52,6 +52,8 @@ and timetravel 50 C, others 55 C):
 | timetravel | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 45.9 MH/s | 46.9 MH/s |
 | tribus | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 2.22 MH/s (PTX JIT) | 2.24 MH/s |
 | tribus | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 100.7 MH/s | 95.5 MH/s |
+| verthash | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 38.8 kH/s (PTX JIT) | 37.8 kH/s |
+| verthash | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 506.0 kH/s | 506.1 kH/s |
 | whirlpool | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.664 MH/s (PTX JIT) | 0.657 MH/s |
 | whirlpool | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 76.2 MH/s | 78.0 MH/s |
 | x11 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.680 MH/s (PTX JIT) | 0.683 MH/s |

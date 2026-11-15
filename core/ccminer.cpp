@@ -202,7 +202,7 @@ pthread_mutex_t stratum_work_lock;
 char *opt_cert;
 char *opt_verthash_data = NULL;  // --verthash-data <path> to verthash.dat
 bool opt_gen_verthash_data = false;  // --generate-verthash-dat: (re)create it, then exit
-// verthash.dat generator / loader (algos/verthash/verthash-data.cpp)
+// verthash.dat generator / loader (algos/verthash/verthash_data.cpp)
 extern "C" {
 	int verthash_generate_data_file(const char *path);
 	int verthash_data_load(const char *path, uint8_t **out_buf, size_t *out_size);

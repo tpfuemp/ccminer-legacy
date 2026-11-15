@@ -76,6 +76,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `skein2` | Skein-512 twice (Woodcoin) |
 | `timetravel` | Timetravel, 8 of the X16R blocks in an order picked by the block time (Machinecoin) |
 | `tribus` | JH-512 + Keccak-512 + ECHO-512 (Denarius) |
+| `verthash` | SHA-3 + 4096 random reads from the 1.28 GB `verthash.dat` (Vertcoin); `--verthash-data`, `--generate-verthash-dat` |
 | `whirlcoin` | 4x Whirlpool-T (Whirlcoin), same as `whirlpool` |
 | `whirlpool` | 4x Whirlpool-T (old whirlpool) |
 | `x11` | X11, 11 chained 512-bit hashes (Dash) |

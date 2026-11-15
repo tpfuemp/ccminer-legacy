@@ -33,6 +33,13 @@ the file header.
 yescrypt CPU reference (algos/yescrypt/yescrypt-*.c, sha256_Y.c) by Colin
 Percival and Alexander Peslyak, 2-clause BSD license in the file headers.
 
+Third-party code (GPL)
+----------------------
+Verthash kernels (algos/verthash/cuda_verthash.cu) after VerthashMiner, and the
+verthash.dat generator and CPU hash (algos/verthash/verthash_data.cpp) from
+cpuminer-opt, both by CryptoGraphics, GPL-2.0-or-later. tiny_sha3
+(sph/sha3.c) by Markku-Juhani O. Saarinen.
+
 Donation
 --------
 Donations are optional and support continued development of this fork.

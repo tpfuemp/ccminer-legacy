@@ -1,4 +1,4 @@
-AC_INIT([ccminer-legacy], [2026.10], [], [ccminer-legacy], [https://github.com/tpfuemp/ccminer-legacy])
+AC_INIT([ccminer-legacy], [2026.11], [], [ccminer-legacy], [https://github.com/tpfuemp/ccminer-legacy])
 
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([core/ccminer.cpp])
