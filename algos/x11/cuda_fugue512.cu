@@ -215,7 +215,8 @@ static const uint32_t mixtab0[] = {
 
 __global__
 __launch_bounds__(TPB)
-void x13_fugue512_gpu_hash_64(uint32_t threads, uint64_t *g_hash)
+void x13_fugue512_gpu_hash_64(uint32_t threads, uint32_t startNounce, uint64_t *g_hash,
+	const uint32_t *g_nonceVector)
 {
 	__shared__ uint32_t mixtabs[1024];
 
@@ -232,7 +233,7 @@ void x13_fugue512_gpu_hash_64(uint32_t threads, uint64_t *g_hash)
 	uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
 	if (thread < threads)
 	{
-		const size_t hashPosition = thread;
+		const size_t hashPosition = g_nonceVector ? g_nonceVector[thread] - startNounce : thread;
 		uint64_t*pHash = &g_hash[hashPosition<<3];
 		uint32_t Hash[16];
 
@@ -359,5 +360,5 @@ void x13_fugue512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce
 	dim3 grid((threads + threadsperblock-1)/threadsperblock);
 	dim3 block(threadsperblock);
 
-	x13_fugue512_gpu_hash_64 <<<grid, block>>> (threads, (uint64_t*)d_hash);
+	x13_fugue512_gpu_hash_64 <<<grid, block>>> (threads, startNounce, (uint64_t*)d_hash, d_nonceVector);
 }

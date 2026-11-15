@@ -74,7 +74,8 @@ static void echo_round_alexis(const uint32_t sharedMemory[4][256], uint32_t *W, 
 }
 
 __global__ __launch_bounds__(128, 5) /* will force 80 registers */
-static void x16_echo512_gpu_hash_64(uint32_t threads, uint32_t* g_hash)
+static void x16_echo512_gpu_hash_64(uint32_t threads, uint32_t startNounce, uint32_t* g_hash,
+	const uint32_t *g_nonceVector)
 {
 	__shared__ uint32_t sharedMemory[4][256];
 
@@ -87,7 +88,8 @@ static void x16_echo512_gpu_hash_64(uint32_t threads, uint32_t* g_hash)
 	uint32_t hash[16];
 	if (thread < threads)
 	{
-		uint32_t *Hash = &g_hash[thread<<4];
+		const uint32_t pos = g_nonceVector ? g_nonceVector[thread] - startNounce : thread;
+		uint32_t *Hash = &g_hash[pos<<4];
 
 		*(uint2x4*)&h[ 0] = __ldg4((uint2x4*)&Hash[ 0]);
 		*(uint2x4*)&h[ 8] = __ldg4((uint2x4*)&Hash[ 8]);
@@ -230,12 +232,13 @@ static void x16_echo512_gpu_hash_64(uint32_t threads, uint32_t* g_hash)
 }
 
 __host__
-void x16_echo512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t *d_hash)
+void x16_echo512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t *d_hash, uint32_t startNounce,
+	uint32_t *d_nonceVector)
 {
 	const uint32_t threadsperblock = 128;
 
 	dim3 grid((threads + threadsperblock-1)/threadsperblock);
 	dim3 block(threadsperblock);
 
-	x16_echo512_gpu_hash_64 <<<grid, block>>> (threads, d_hash);
+	x16_echo512_gpu_hash_64 <<<grid, block>>> (threads, startNounce, d_hash, d_nonceVector);
 }

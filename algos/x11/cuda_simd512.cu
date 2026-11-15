@@ -536,14 +536,18 @@ void Expansion(const uint32_t *data, uint4 *g_temp4)
 /***************************************************/
 
 __global__ __launch_bounds__(TPB, 4)
-void x11_simd512_gpu_expand_64(uint32_t threads, uint32_t *g_hash, uint4 *g_temp4)
+void x11_simd512_gpu_expand_64(uint32_t threads, uint32_t startNounce, uint32_t *g_hash,
+	const uint32_t *g_nonceVector, uint4 *g_temp4)
 {
 	// no early exit: the 8-lane groups shuffle with a full warp mask on CUDA 9+, so groups
 	// past threads run on the padding the buffers are sized for (threads rounded up to TPB)
 	int threadBloc = (blockDim.x * blockIdx.x + threadIdx.x) / 8;
 	{
-		int hashPosition = threadBloc * 16;
-		uint32_t *inpHash = &g_hash[hashPosition];
+		// padding groups (threadBloc >= threads) keep their own in-bounds position
+		const int hashPosition = threadBloc * 16;
+		const uint32_t pos = (g_nonceVector && threadBloc < (int) threads) ?
+			g_nonceVector[threadBloc] - startNounce : (uint32_t) threadBloc;
+		uint32_t *inpHash = &g_hash[pos * 16];
 
 		// Read hash per 8 threads
 		uint32_t Hash[2];
@@ -559,12 +563,13 @@ void x11_simd512_gpu_expand_64(uint32_t threads, uint32_t *g_hash, uint4 *g_temp
 }
 
 __global__ __launch_bounds__(TPB, 1)
-void x11_simd512_gpu_compress1_64(uint32_t threads, uint32_t *g_hash, uint4 *g_fft4, uint32_t *g_state)
+void x11_simd512_gpu_compress1_64(uint32_t threads, uint32_t startNounce, uint32_t *g_hash,
+	const uint32_t *g_nonceVector, uint4 *g_fft4, uint32_t *g_state)
 {
 	uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
 	if (thread < threads)
 	{
-		uint32_t *Hash = &g_hash[thread * 16];
+		uint32_t *Hash = &g_hash[(g_nonceVector ? g_nonceVector[thread] - startNounce : thread) * 16];
 		Compression1(Hash, thread, g_fft4, g_state);
 	}
 }
@@ -580,34 +585,36 @@ void x11_simd512_gpu_compress2_64(uint32_t threads, uint4 *g_fft4, uint32_t *g_s
 }
 
 __global__ __launch_bounds__(TPB, 2)
-void x11_simd512_gpu_compress_64_maxwell(uint32_t threads, uint32_t *g_hash, uint4 *g_fft4, uint32_t *g_state)
+void x11_simd512_gpu_compress_64_maxwell(uint32_t threads, uint32_t startNounce, uint32_t *g_hash,
+	const uint32_t *g_nonceVector, uint4 *g_fft4, uint32_t *g_state)
 {
 	uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
 	if (thread < threads)
 	{
-		uint32_t *Hash = &g_hash[thread * 16];
+		uint32_t *Hash = &g_hash[(g_nonceVector ? g_nonceVector[thread] - startNounce : thread) * 16];
 		Compression1(Hash, thread, g_fft4, g_state);
 		Compression2(thread, g_fft4, g_state);
 	}
 }
 
 __global__ __launch_bounds__(TPB, 2)
-void x11_simd512_gpu_final_64(uint32_t threads, uint32_t *g_hash, uint4 *g_fft4, uint32_t *g_state)
+void x11_simd512_gpu_final_64(uint32_t threads, uint32_t startNounce, uint32_t *g_hash,
+	const uint32_t *g_nonceVector, uint4 *g_fft4, uint32_t *g_state)
 {
 	uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
 	if (thread < threads)
 	{
-		uint32_t *Hash = &g_hash[thread * 16];
+		uint32_t *Hash = &g_hash[(g_nonceVector ? g_nonceVector[thread] - startNounce : thread) * 16];
 		Final(Hash, thread, g_fft4, g_state);
 	}
 }
 
 #else
-__global__ void x11_simd512_gpu_expand_64(uint32_t threads, uint32_t *g_hash, uint4 *g_temp4) {}
-__global__ void x11_simd512_gpu_compress1_64(uint32_t threads, uint32_t *g_hash, uint4 *g_fft4, uint32_t *g_state) {}
+__global__ void x11_simd512_gpu_expand_64(uint32_t threads, uint32_t startNounce, uint32_t *g_hash, const uint32_t *g_nonceVector, uint4 *g_temp4) {}
+__global__ void x11_simd512_gpu_compress1_64(uint32_t threads, uint32_t startNounce, uint32_t *g_hash, const uint32_t *g_nonceVector, uint4 *g_fft4, uint32_t *g_state) {}
 __global__ void x11_simd512_gpu_compress2_64(uint32_t threads, uint4 *g_fft4, uint32_t *g_state) {}
-__global__ void x11_simd512_gpu_compress_64_maxwell(uint32_t threads, uint32_t *g_hash, uint4 *g_fft4, uint32_t *g_state) {}
-__global__ void x11_simd512_gpu_final_64(uint32_t threads, uint32_t *g_hash, uint4 *g_fft4, uint32_t *g_state) {}
+__global__ void x11_simd512_gpu_compress_64_maxwell(uint32_t threads, uint32_t startNounce, uint32_t *g_hash, const uint32_t *g_nonceVector, uint4 *g_fft4, uint32_t *g_state) {}
+__global__ void x11_simd512_gpu_final_64(uint32_t threads, uint32_t startNounce, uint32_t *g_hash, const uint32_t *g_nonceVector, uint4 *g_fft4, uint32_t *g_state) {}
 #endif /* SM3+ */
 
 __host__
@@ -660,20 +667,15 @@ void x11_simd512_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounce,
 	dim3 grid((threads + threadsperblock-1) / threadsperblock);
 	dim3 gridX8(grid.x * 8);
 
-	if (d_nonceVector != NULL) {
-		gpulog(LOG_ERR, thr_id, "simd512: nonce vectors are not supported");
-		return;
-	}
-
-	x11_simd512_gpu_expand_64 <<<gridX8, block>>> (threads, d_hash, d_temp4[thr_id]);
+	x11_simd512_gpu_expand_64 <<<gridX8, block>>> (threads, startNounce, d_hash, d_nonceVector, d_temp4[thr_id]);
 
 	if (device_sm[dev_id] >= 500 && cuda_arch[dev_id] >= 500) {
-		x11_simd512_gpu_compress_64_maxwell <<< grid, block >>> (threads, d_hash, d_temp4[thr_id], d_state[thr_id]);
+		x11_simd512_gpu_compress_64_maxwell <<< grid, block >>> (threads, startNounce, d_hash, d_nonceVector, d_temp4[thr_id], d_state[thr_id]);
 	} else {
-		x11_simd512_gpu_compress1_64 <<< grid, block >>> (threads, d_hash, d_temp4[thr_id], d_state[thr_id]);
+		x11_simd512_gpu_compress1_64 <<< grid, block >>> (threads, startNounce, d_hash, d_nonceVector, d_temp4[thr_id], d_state[thr_id]);
 		x11_simd512_gpu_compress2_64 <<< grid, block >>> (threads, d_temp4[thr_id], d_state[thr_id]);
 	}
 
-	x11_simd512_gpu_final_64 <<<grid, block>>> (threads, d_hash, d_temp4[thr_id], d_state[thr_id]);
+	x11_simd512_gpu_final_64 <<<grid, block>>> (threads, startNounce, d_hash, d_nonceVector, d_temp4[thr_id], d_state[thr_id]);
 
 }

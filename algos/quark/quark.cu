@@ -109,21 +109,21 @@ uint32_t quark_scan(int thr_id, uint32_t threads, uint32_t startNonce,
 	quark_blake512_cpu_hash_80(thr_id, threads, startNonce, h);
 	quark_bmw512_cpu_hash_64(thr_id, threads, startNonce, NULL, h, 0);
 
-	quark_split_cpu(thr_id, threads, startNonce, h, l1, &n1, l2, &n2);
+	quark_split_cpu(thr_id, threads, startNonce, h, 0x8, l1, &n1, l2, &n2);
 	if (n1) quark_groestl512_cpu_hash_64(thr_id, n1, startNonce, l1, h, 0);
 	if (n2) quark_skein512_cpu_hash_64(thr_id, n2, startNonce, l2, h, 0);
 
 	quark_groestl512_cpu_hash_64(thr_id, threads, startNonce, NULL, h, 0);
 	quark_jh512_cpu_hash_64(thr_id, threads, startNonce, NULL, h, 0);
 
-	quark_split_cpu(thr_id, threads, startNonce, h, l1, &n1, l2, &n2);
+	quark_split_cpu(thr_id, threads, startNonce, h, 0x8, l1, &n1, l2, &n2);
 	if (n1) quark_blake512_cpu_hash_64(thr_id, n1, startNonce, l1, h, 0);
 	if (n2) quark_bmw512_cpu_hash_64(thr_id, n2, startNonce, l2, h, 0);
 
 	quark_keccak512_cpu_hash_64(thr_id, threads, startNonce, NULL, h, 0);
 	quark_skein512_cpu_hash_64(thr_id, threads, startNonce, NULL, h, 0);
 
-	quark_split_cpu(thr_id, threads, startNonce, h, l1, &n1, l2, &n2);
+	quark_split_cpu(thr_id, threads, startNonce, h, 0x8, l1, &n1, l2, &n2);
 	if (n1) quark_keccak512_cpu_hash_64(thr_id, n1, startNonce, l1, h, 0);
 	if (n2) quark_jh512_cpu_hash_64(thr_id, n2, startNonce, l2, h, 0);
 

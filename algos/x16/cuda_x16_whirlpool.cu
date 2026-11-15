@@ -412,7 +412,8 @@ void x16_whirlpool512_hash_80(int thr_id, const uint32_t threads, const uint32_t
 
 __global__
 __launch_bounds__(TPB64,2)
-void x15_whirlpool_gpu_hash_64(uint32_t threads, uint64_t *g_hash)
+void x15_whirlpool_gpu_hash_64(uint32_t threads, uint32_t startNounce, uint64_t *g_hash,
+	const uint32_t *g_nonceVector)
 {
 	__shared__ uint2 sharedMemory[7][256];
 
@@ -430,6 +431,7 @@ void x15_whirlpool_gpu_hash_64(uint32_t threads, uint64_t *g_hash)
 
 	const uint32_t thread = (blockDim.x * blockIdx.x + threadIdx.x);
 	if (thread < threads){
+		const uint32_t pos = g_nonceVector ? g_nonceVector[thread] - startNounce : thread;
 
 		uint2 hash[8], n[8], h[ 8];
 		uint2 tmp[8] = {
@@ -437,8 +439,8 @@ void x15_whirlpool_gpu_hash_64(uint32_t threads, uint64_t *g_hash)
 			{0x28282828,0x28282828},{0x28282828,0x28282828},{0x28282828,0x28282828},{0x28282828,0x28282828}
 		};
 
-		*(uint2x4*)&hash[ 0] = __ldg4((uint2x4*)&g_hash[(thread<<3) + 0]);
-		*(uint2x4*)&hash[ 4] = __ldg4((uint2x4*)&g_hash[(thread<<3) + 4]);
+		*(uint2x4*)&hash[ 0] = __ldg4((uint2x4*)&g_hash[(pos<<3) + 0]);
+		*(uint2x4*)&hash[ 4] = __ldg4((uint2x4*)&g_hash[(pos<<3) + 4]);
 
 		#pragma unroll 8
 		for(int i=0;i<8;i++)
@@ -512,8 +514,8 @@ void x15_whirlpool_gpu_hash_64(uint32_t threads, uint64_t *g_hash)
 		hash[6] = hash[6]^ n[6];
 		hash[7] = xor3x(hash[7], n[7], vectorize(0x2000000000000));
 
-		*(uint2x4*)&g_hash[(thread<<3)+ 0] = *(uint2x4*)&hash[ 0];
-		*(uint2x4*)&g_hash[(thread<<3)+ 4] = *(uint2x4*)&hash[ 4];
+		*(uint2x4*)&g_hash[(pos<<3)+ 0] = *(uint2x4*)&hash[ 0];
+		*(uint2x4*)&g_hash[(pos<<3)+ 4] = *(uint2x4*)&hash[ 4];
 	}
 }
 
@@ -522,5 +524,5 @@ void x15_whirlpool_cpu_hash_64(int thr_id, uint32_t threads, uint32_t startNounc
 {
 	dim3 grid((threads + TPB64 - 1) / TPB64);
 	dim3 block(TPB64);
-	x15_whirlpool_gpu_hash_64 <<<grid, block>>> (threads, (uint64_t*)d_hash);
+	x15_whirlpool_gpu_hash_64 <<<grid, block>>> (threads, startNounce, (uint64_t*)d_hash, d_nonceVector);
 }

@@ -3,12 +3,12 @@
 
 #include <stdint.h>
 
-/* splits the nonces [startNonce, startNonce + threads) by bit 3 of byte 0 of
- * their hash in d_hash: set -> d_list1 (*n1 entries), clear -> d_list2 (*n2) */
+/* splits the nonces [startNonce, startNonce + threads) by the mask bits of byte 0
+ * of their hash in d_hash: any set -> d_list1 (*n1 entries), else d_list2 (*n2) */
 void quark_split_cpu_init(int thr_id);
 void quark_split_cpu_free(int thr_id);
 void quark_split_cpu(int thr_id, uint32_t threads, uint32_t startNonce, uint32_t *d_hash,
-	uint32_t *d_list1, uint32_t *n1, uint32_t *d_list2, uint32_t *n2);
+	uint32_t mask, uint32_t *d_list1, uint32_t *n1, uint32_t *d_list2, uint32_t *n2);
 
 /* one launch chain over [startNonce, startNonce + threads) for the block and
  * target set by quark_setBlock(); up to max_out candidates ascending into out,

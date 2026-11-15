@@ -155,6 +155,7 @@
     <ClCompile Include="sph\fugue.c" />
     <ClCompile Include="sph\groestl.c" />
     <ClCompile Include="sph\hamsi.c" />
+    <ClCompile Include="sph\haval.c" />
     <ClCompile Include="sph\jh.c" />
     <ClCompile Include="sph\keccak.c" />
     <ClCompile Include="sph\luffa.c" />
@@ -169,6 +170,7 @@
     <ClCompile Include="sph\whirlpool.c" />
     <None Include="sph\aes_helper.c" />
     <None Include="sph\hamsi_helper.c" />
+    <None Include="sph\haval_helper.c" />
     <None Include="sph\md_helper.c" />
     <ClInclude Include="sph\sph_blake.h" />
     <ClInclude Include="sph\sph_bmw.h" />
@@ -177,6 +179,7 @@
     <ClInclude Include="sph\sph_fugue.h" />
     <ClInclude Include="sph\sph_groestl.h" />
     <ClInclude Include="sph\sph_hamsi.h" />
+    <ClInclude Include="sph\sph_haval.h" />
     <ClInclude Include="sph\sph_jh.h" />
     <ClInclude Include="sph\sph_keccak.h" />
     <ClInclude Include="sph\sph_luffa.h" />
@@ -275,6 +278,13 @@
     <CudaCompile Include="algos\lbry\cuda_lbry_selftest.cu" />
     <ClCompile Include="algos\lbry\register.cpp" />
     <ClInclude Include="algos\lbry\lbry.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\hmq1725\hmq1725.cu" />
+    <CudaCompile Include="algos\hmq1725\cuda_x17_haval256.cu" />
+    <CudaCompile Include="algos\hmq1725\cuda_hmq1725_selftest.cu" />
+    <ClCompile Include="algos\hmq1725\register.cpp" />
+    <ClInclude Include="algos\hmq1725\hmq1725.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\skein2\skein2.cu" />

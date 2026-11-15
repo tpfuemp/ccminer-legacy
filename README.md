@@ -60,6 +60,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `decred` | BLAKE3-256 over the 180-byte header (Decred, DCP-0011) |
 | `dmd-gr` | Double Groestl-512 (Diamond), same as `groestl` |
 | `groestl` | Double Groestl-512 (Groestlcoin) |
+| `hmq1725` | 25 chained 512-bit hashes, 8 of them picked per nonce by the hash (Espers), alias `hmq17` |
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
 | `lbry` | SHA-256d + SHA-512 + 2x RIPEMD-160 + SHA-256d over the 112-byte header (LBRY Credits) |
