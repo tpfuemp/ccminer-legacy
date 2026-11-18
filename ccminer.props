@@ -7,7 +7,7 @@
 -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <AlgoDefines>WITH_VERTHASH</AlgoDefines>
+    <AlgoDefines>WITH_EQUIHASH;WITH_VERTHASH</AlgoDefines>
     <CommonDefines>WIN32;_CONSOLE;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;USE_WRAPNVML;$(AlgoDefines)</CommonDefines>
     <CommonIncludes>.;core;cuda;compat;compat\curl-for-windows\curl\include;compat\jansson;compat\getopt;compat\pthreads;compat\curl-for-windows\openssl;compat\curl-for-windows\zlib;compat\nvapi</CommonIncludes>
     <CommonLibs>cudart_static.lib;kernel32.lib;user32.lib;advapi32.lib;shell32.lib;ws2_32.lib;wldap32.lib;winmm.lib;crypt32.lib;pthreadVC2.lib;libcurl.x64.lib;libssl.x64.lib;libcrypto.x64.lib;zlib.x64.lib;nvapi64.lib</CommonLibs>
@@ -287,6 +287,34 @@
     <CudaCompile Include="algos\hmq1725\cuda_hmq1725_selftest.cu" />
     <ClCompile Include="algos\hmq1725\register.cpp" />
     <ClInclude Include="algos\hmq1725\hmq1725.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\equihash\equihash.cu" />
+    <ClCompile Include="algos\equihash\equi-stratum.cpp" />
+    <CudaCompile Include="algos\equihash\cuda_equi24b_144.cu" />
+    <CudaCompile Include="algos\equihash\cuda_equi24b_192.cu" />
+    <CudaCompile Include="algos\equihash\cuda_equi24l_144.cu" />
+    <ClCompile Include="algos\equihash\equi_verify_144.cpp" />
+    <ClCompile Include="algos\equihash\equi_verify_192.cpp" />
+    <ClCompile Include="algos\equihash\blake2\blake2bx.cpp" />
+    <ClCompile Include="algos\equihash\register.cpp" />
+    <ClInclude Include="algos\equihash\equihash.h" />
+    <ClInclude Include="algos\equihash\cuda_equi24b.h" />
+    <ClInclude Include="algos\equihash\cuda_equi24b.cuh" />
+    <ClInclude Include="algos\equihash\equi24_warp.cuh" />
+    <ClInclude Include="algos\equihash\equi24b_params.h" />
+    <ClInclude Include="algos\equihash\blake2b_tromp.cuh" />
+    <ClInclude Include="algos\equihash\equi_verify.h" />
+    <ClInclude Include="algos\equihash\equi_tromp.h" />
+    <ClInclude Include="algos\equihash\equi_pack.h" />
+    <ClInclude Include="algos\equihash\equi_vectors.h" />
+    <ClInclude Include="algos\equihash\blake2\blake2.h" />
+    <ClInclude Include="algos\equihash\blake2\blake2-config.h" />
+    <ClInclude Include="algos\equihash\blake2\blake2-impl.h" />
+    <ClInclude Include="algos\equihash\blake2\blake2-round.h" />
+    <ClInclude Include="algos\equihash\blake2\blake2b-load-sse2.h" />
+    <ClInclude Include="algos\equihash\blake2\blake2b-load-sse41.h" />
+    <ClInclude Include="algos\equihash\blake2\blake2b-round.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\verthash\verthash.cu" />

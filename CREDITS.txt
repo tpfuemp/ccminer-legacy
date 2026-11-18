@@ -24,6 +24,12 @@ Third-party code (MIT)
 bc3hash reference code (crypto/bc3) by the Bitcoin Core / Bitcoin III developers,
 see algos/bc3hash/ref/COPYING. libsecp256k1 by Pieter Wuille and contributors,
 see compat/secp256k1/COPYING.
+Equihash verifier (algos/equihash/equi_tromp.h) by John Tromp, and the CUDA
+BLAKE2b (algos/equihash/blake2b_tromp.cuh) by tpruvot, modified by John Tromp.
+
+Third-party code (CC0)
+----------------------
+BLAKE2 reference implementation (algos/equihash/blake2/) by Samuel Neves.
 
 Third-party code (BSD)
 ----------------------

@@ -25,6 +25,9 @@ struct header_layout {
 #ifdef WITH_VERTHASH
 bool verthash_data_ready(void);
 #endif
+#ifdef WITH_EQUIHASH
+void equihash_test_vectors(int *passed, int *failed);
+#endif
 
 static struct header_layout layout_of(int algo_id)
 {
@@ -127,6 +130,13 @@ int run_test_vectors(void)
 		const struct algo_desc *algo = algo_find(id);
 		if (!algo)
 			continue;
+#ifdef WITH_EQUIHASH
+		if (id == ALGO_EQUIHASH) {
+			// a vector is a header plus a solution: its own check
+			equihash_test_vectors(&passed, &failed);
+			continue;
+		}
+#endif
 		const struct algo_test_vector *v;
 		const int count = algo_find_tests(id, &v);
 		if (!count || !algo->cpu_hash) {

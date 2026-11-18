@@ -3,8 +3,8 @@ Tested hardware
 
 `--benchmark` with the default intensity, release builds, 60 s runs
 (`--time-limit=60`). Fast cards throttle as they heat up, so compare runs
-only from the same start temperature (GTX 1080 Ti: blakecoin, hmq1725, lbry,
-timetravel and verthash 50 C, others 55 C):
+only from the same start temperature (GTX 1080 Ti: blakecoin, equihash,
+hmq1725, lbry, timetravel and verthash 50 C, others 55 C):
 
 | Algorithm | GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
 |---|---|---|---|---|---|
@@ -22,6 +22,9 @@ timetravel and verthash 50 C, others 55 C):
 | bmw512 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1451 MH/s | 1492 MH/s |
 | decred | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 247.2 MH/s (PTX JIT) | 246.2 MH/s |
 | decred | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 7295 MH/s | 8411 MH/s |
+| equihash144 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.64 Sol/s (PTX JIT, lean) | 0.65 Sol/s (lean) |
+| equihash144 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 78.9 Sol/s | 82.2 Sol/s |
+| equihash192 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 44.3 Sol/s | 45.3 Sol/s |
 | groestl | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.80 MH/s (PTX JIT) | 1.76 MH/s |
 | groestl | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 58.5 MH/s | 59.3 MH/s |
 | hmq1725 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 219.4 kH/s (PTX JIT) | 221.2 kH/s |
@@ -80,5 +83,12 @@ previous block hash). x16rt and timetravel benchmark the order of the fixed
 benchmark block time. When mining, the order changes with the block (x16rt: every 128 s), so
 the rate varies: pool runs gave 30 to 60 % of the benchmark rate for x16rv2
 and 50 to 110 % for x16rt.
+
+The equihash rate (solutions per second) swings between the 4 s readings, so
+the table gives the mean of all readings of the run. On the GTX 660M, which
+finishes only two or three solves per reading, it gives the `--debug` count over
+the whole run instead. The GTX 660M has too little VRAM for the full 144/5
+solver (2.8 GB), so the lean one runs (1.6 GB, about 30 % of the full rate on a
+GTX 1080 Ti); 192/7 needs 5.4 GB and does not run.
 
 Maxwell (`sm_50`, `sm_52`) is untested so far; reports are welcome.

@@ -59,6 +59,7 @@ include $(srcdir)/algos/lyra2v2/algo.mk
 include $(srcdir)/algos/lyra2z330/algo.mk
 include $(srcdir)/algos/lbry/algo.mk
 include $(srcdir)/algos/hmq1725/algo.mk
+include $(srcdir)/algos/equihash/algo.mk
 include $(srcdir)/algos/verthash/algo.mk
 include $(srcdir)/algos/skein/algo.mk
 include $(srcdir)/algos/tribus/algo.mk

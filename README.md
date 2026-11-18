@@ -59,6 +59,8 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `bmw512` | BMW-512, truncated to 256 bits |
 | `decred` | BLAKE3-256 over the 180-byte header (Decred, DCP-0011) |
 | `dmd-gr` | Double Groestl-512 (Diamond), same as `groestl` |
+| `equihash144` | Equihash 144/5 (BitcoinZ and others, the pool can set the personalization); needs 2.8 GB of VRAM, a slower lean solver runs with 1.6 GB |
+| `equihash192` | Equihash 192/7 (YCash, ZClassic and others); needs 5.4 GB of VRAM |
 | `groestl` | Double Groestl-512 (Groestlcoin) |
 | `hmq1725` | 25 chained 512-bit hashes, 8 of them picked per nonce by the hash (Espers), alias `hmq17` |
 | `keccak` | Keccak-256 (Maxcoin) |
