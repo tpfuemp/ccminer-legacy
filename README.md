@@ -63,6 +63,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `equihash192` | Equihash 192/7 (YCash, ZClassic and others); needs 5.4 GB of VRAM |
 | `groestl` | Double Groestl-512 (Groestlcoin) |
 | `hmq1725` | 25 chained 512-bit hashes, 8 of them picked per nonce by the hash (Espers), alias `hmq17` |
+| `hoohash` | HoohashV110: BLAKE3 and a 64x64 FP64 matrix pass (PEPEPOW), aliases `hoohash-pepew`, `pepepow` |
 | `keccak` | Keccak-256 (Maxcoin) |
 | `keccakc` | Keccak-256 (CreativeCoin), pool difficulty factor 256 |
 | `lbry` | SHA-256d + SHA-512 + 2x RIPEMD-160 + SHA-256d over the 112-byte header (LBRY Credits) |

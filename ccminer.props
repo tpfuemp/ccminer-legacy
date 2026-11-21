@@ -289,6 +289,17 @@
     <ClInclude Include="algos\hmq1725\hmq1725.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\hoohash\cuda_hoohash.cu">
+      <!-- the reference rounds every product and sum: no fused multiply-add -->
+      <AdditionalOptions>--fmad=false %(AdditionalOptions)</AdditionalOptions>
+    </CudaCompile>
+    <ClCompile Include="algos\hoohash\register.cpp" />
+    <ClCompile Include="algos\hoohash\ref\hoohash.c" />
+    <ClInclude Include="algos\hoohash\ref\hoohash.h" />
+    <ClInclude Include="algos\hoohash\blake3.h" />
+    <ClInclude Include="algos\hoohash\hoohash_device.cuh" />
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\equihash\equihash.cu" />
     <ClCompile Include="algos\equihash\equi-stratum.cpp" />
     <CudaCompile Include="algos\equihash\cuda_equi24b_144.cu" />

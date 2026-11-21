@@ -297,7 +297,7 @@ static inline int algo_to_int(char* arg)
 			i = ALGO_YESPOWER;
 		else if (!strcasecmp("hoohashv110", arg))
 			i = ALGO_HOOHASH;
-		else if (!strcasecmp("pepepow", arg))
+		else if (!strcasecmp("pepepow", arg) || !strcasecmp("hoohash-pepew", arg))
 			i = ALGO_HOOHASH;
 		else if (!strcasecmp("gr", arg))
 			i = ALGO_GHOSTRIDER;

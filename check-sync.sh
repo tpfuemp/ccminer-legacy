@@ -1,6 +1,6 @@
 #!/bin/sh
 # Check that the Windows (ccminer.props) and Linux (Makefile.am + algo.mk)
-# builds list the same sources and per-file nvcc register limits.
+# builds list the same sources, per-file nvcc register limits and --fmad=false.
 #
 # Per-file register limit, same value on both sides:
 #   ccminer.props:  <CudaCompile Include="algos\x\foo.cu">
@@ -93,6 +93,19 @@ cat algos/*/algo.mk | sed -n \
 	sort > "$tmp/make"
 comm -3 "$tmp/props" "$tmp/make" > "$tmp/x"
 report "maxrregcount differs (props left, algo.mk right):" "$tmp/x"
+
+# --- no fused multiply-add (consensus floating point) ----------------------
+awk '
+	/<CudaCompile Include="/ {
+		f = $0; sub(/.*Include="/, "", f); sub(/".*/, "", f); gsub(/\\/, "/", f)
+	}
+	/<AdditionalOptions>.*--fmad=false/ && f != "" { print f }
+	/<\/CudaCompile>|\/>/ { f = "" }
+' ccminer.props | sort > "$tmp/props"
+cat algos/*/algo.mk | sed -n 's/^\([^ :]*\)\.\$(OBJEXT)[ 	]*:.*--fmad=false.*/\1.cu/p' |
+	sort > "$tmp/make"
+comm -3 "$tmp/props" "$tmp/make" > "$tmp/x"
+report "--fmad=false differs (props left, algo.mk right):" "$tmp/x"
 
 [ $fail = 0 ] && echo "build lists in sync"
 exit $fail

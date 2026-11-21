@@ -26,6 +26,8 @@ see algos/bc3hash/ref/COPYING. libsecp256k1 by Pieter Wuille and contributors,
 see compat/secp256k1/COPYING.
 Equihash verifier (algos/equihash/equi_tromp.h) by John Tromp, and the CUDA
 BLAKE2b (algos/equihash/blake2b_tromp.cuh) by tpruvot, modified by John Tromp.
+HoohashV110 reference (algos/hoohash/ref/) by Hoosat Oy and the PePe-core
+developers, see algos/hoohash/ref/COPYING.
 
 Third-party code (CC0)
 ----------------------
