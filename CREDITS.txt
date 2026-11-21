@@ -32,6 +32,9 @@ developers, see algos/hoohash/ref/COPYING.
 Third-party code (CC0)
 ----------------------
 BLAKE2 reference implementation (algos/equihash/blake2/) by Samuel Neves.
+Argon2 reference implementation (algos/rinhash/argon2/) by Daniel Dinu, Dmitry
+Khovratovich, Jean-Philippe Aumasson and Samuel Neves, CC0 or Apache-2.0, see
+algos/rinhash/argon2/LICENSE.
 
 Third-party code (BSD)
 ----------------------
@@ -47,6 +50,9 @@ Verthash kernels (algos/verthash/cuda_verthash.cu) after VerthashMiner, and the
 verthash.dat generator and CPU hash (algos/verthash/verthash_data.cpp) from
 cpuminer-opt, both by CryptoGraphics, GPL-2.0-or-later. tiny_sha3
 (sph/sha3.c) by Markku-Juhani O. Saarinen.
+Argon2 GPU kernels (algos/rinhash/argon2_device.cuh) by Ehsan Dalvand and
+Alireza Jahandideh, GPL-2.0-or-later, with the data-independent addressing
+after argon2-gpu by Ondrej Mosnacek (MIT).
 
 Donation
 --------

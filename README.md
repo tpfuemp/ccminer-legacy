@@ -74,6 +74,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `neoscrypt-xaya` | NeoScrypt with the XAYA header layout, same hash as `neoscrypt` |
 | `quark` | Quark, 9 steps of BLAKE/BMW/Groestl/JH/Keccak/Skein-512, 3 of them hash-dependent |
 | `qubit` | Luffa + CubeHash + SHAvite + SIMD + ECHO, 512 bits each (Qubit) |
+| `rinhash` | BLAKE3, Argon2d over 64 KB, SHA3-256 (Rincoin) |
 | `sha256d` | SHA256d (Bitcoin) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
 | `skein2` | Skein-512 twice (Woodcoin) |

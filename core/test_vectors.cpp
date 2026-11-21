@@ -18,7 +18,7 @@
 struct header_layout {
 	int len;
 	int nonce_word;
-	bool le_words; /* data[] holds the raw little-endian words (decred) */
+	bool le_words; /* data[] holds the raw little-endian words (decred, rinhash) */
 	bool le_nonce; /* the nonce is hashed little-endian (verthash) */
 };
 
@@ -41,6 +41,8 @@ static struct header_layout layout_of(int algo_id)
 		l.nonce_word = 27;
 	} else if (algo_id == ALGO_VERTHASH) {
 		l.le_nonce = true;
+	} else if (algo_id == ALGO_RINHASH) {
+		l.le_words = true;
 	}
 	return l;
 }
