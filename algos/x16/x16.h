@@ -5,14 +5,16 @@
 
 /* chain order variants: x16r (prevhash nibbles), x16s (shuffle by them), x16rv2 (x16r
  * order, Tiger-192 before Keccak, Luffa and SHA-512), x16rt (x16r nibbles of the sha256d
- * of the ntime masked to 128 s), timetravel (8 blocks, a permutation picked by the ntime) */
-enum x16_variant { X16_R = 0, X16_S = 1, X16_RV2 = 2, X16_RT = 3, X16_TT = 4, X16_VARIANTS };
+ * of the ntime masked to 128 s), timetravel (8 blocks, a permutation picked by the ntime),
+ * soterg (X12R, 12 blocks picked by the sha256d of the ntime masked with 0xFFFFFFA0) */
+enum x16_variant { X16_R = 0, X16_S = 1, X16_RV2 = 2, X16_RT = 3, X16_TT = 4, X16_SG = 5,
+	X16_VARIANTS };
 
-/* chain length: 16, timetravel 8 */
+/* chain length: 16, timetravel 8, soterg 12 */
 int x16_steps(int variant);
 
 /* order[i] = block index 0..15 of chain position i < x16_steps(), from header bytes
- * 4..11 (x16rt, timetravel: bytes 68..71) */
+ * 4..11 (x16rt, timetravel, soterg: bytes 68..71) */
 void x16_order(int variant, const uint8_t *header80, uint8_t order[16]);
 
 /* CPU reference of the 80-byte serialized header, 32 bytes out */

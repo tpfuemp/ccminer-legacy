@@ -2,7 +2,8 @@
  * X16R, X16S, X16RV2 and X16RT: 16 chained 512-bit hashes of the 80-byte header in an
  * order picked from the previous block hash (X16RT: from the block time). X16RV2 hashes
  * Tiger-192 (zero-padded to 64 bytes) before Keccak, Luffa and SHA-512. Timetravel: 8 of
- * the blocks in an order picked by the block time.
+ * the blocks in an order picked by the block time. Soterg (X12R, Soteria): 12 of the
+ * blocks picked by the block time.
  */
 extern "C" {
 #include "sph/sph_blake.h"
@@ -47,7 +48,31 @@ static const char *const algo_names[HASH_FUNC_COUNT] = {
 
 int x16_steps(int variant)
 {
-	return variant == X16_TT ? 8 : HASH_FUNC_COUNT;
+	return variant == X16_TT ? 8 : variant == X16_SG ? 12 : HASH_FUNC_COUNT;
+}
+
+/* x16r digit j < 16 of a hash: the 16 hex digits of bytes 0..7, last byte first */
+static uint8_t x16_digit(const uint8_t *hash, int j)
+{
+	const uint8_t b = hash[(15 - j) >> 1];
+	return (j & 1) ? (b & 0xF) : (b >> 4);
+}
+
+/* soterg (Soteria node GetHashSelection): the first digit < 12 from position i on,
+ * wrapping at 16; if none, the last one tried mod 12. Maps the node's ids 0..11 to the
+ * x16 blocks. */
+static uint8_t sg_select(const uint8_t *seed, int i)
+{
+	static const uint8_t sg_algo[12] = {
+		BLAKE, SHABAL, GROESTL, JH, KECCAK, SKEIN, LUFFA, CUBEHASH, SIMD, ECHO, HAMSI, SHA512
+	};
+	uint8_t d = 0;
+	for (int k = 0; k < 16; k++) {
+		d = x16_digit(seed, (i + k) & 15);
+		if (d < 12)
+			return sg_algo[d];
+	}
+	return sg_algo[d % 12];
 }
 
 /* timetravel: permutation number (ntime - 1389040865) mod 8! of the blocks BLAKE, BMW,
@@ -76,20 +101,24 @@ void x16_order(int variant, const uint8_t *header80, uint8_t order[16])
 	}
 	const uint8_t *prev = header80 + 4;
 	uint8_t time_hash[32];
-	if (variant == X16_RT) {
-		// sha256d of the 4 LE bytes of the ntime, rounded down to 128 s
+	if (variant == X16_RT || variant == X16_SG) {
+		// sha256d of the 4 LE bytes of the ntime, x16rt rounded down to 128 s, soterg
+		// masked with 0xFFFFFFA0 (bits 0..4 and 6 cleared)
 		uint8_t t[4];
-		le32enc(t, le32dec(header80 + 68) & 0xffffff80);
+		le32enc(t, le32dec(header80 + 68) & (variant == X16_RT ? 0xffffff80 : 0xffffffa0));
 		sha256d(time_hash, t, 4);
 		prev = time_hash;
+	}
+	if (variant == X16_SG) {
+		for (int i = 0; i < 12; i++)
+			order[i] = sg_select(prev, i);
+		return;
 	}
 	uint8_t list[HASH_FUNC_COUNT];
 	for (int i = 0; i < HASH_FUNC_COUNT; i++)
 		list[i] = (uint8_t) i;
 	for (int i = 0; i < HASH_FUNC_COUNT; i++) {
-		// 16 hex digits of the first 8 hash bytes, last byte first
-		const uint8_t b = prev[(15 - i) >> 1];
-		const uint8_t digit = (i & 1) ? (b & 0xF) : (b >> 4);
+		const uint8_t digit = x16_digit(prev, i);
 		if (variant != X16_S) {
 			order[i] = digit;
 			continue;
@@ -160,6 +189,7 @@ extern "C" void x16s_hash(void *output, const void *input) { x16_hash(X16_S, out
 extern "C" void x16rv2_hash(void *output, const void *input) { x16_hash(X16_RV2, output, input); }
 extern "C" void x16rt_hash(void *output, const void *input) { x16_hash(X16_RT, output, input); }
 extern "C" void timetravel_hash(void *output, const void *input) { x16_hash(X16_TT, output, input); }
+extern "C" void soterg_hash(void *output, const void *input) { x16_hash(X16_SG, output, input); }
 
 static uint32_t *d_hash[MAX_GPUS];
 static int s_variant[MAX_GPUS];
@@ -288,7 +318,7 @@ static int scanhash_x16(int variant, int thr_id, struct work* work, uint32_t max
 	if (opt_benchmark) {
 		ptarget[7] = 0x003f;
 		// benchmark order as the reference miner: x16r/x16rv2 ECHO then 15x BLAKE, x16s the
-		// shuffle of a zero prevhash, x16rt the order of the fixed benchmark ntime
+		// shuffle of a zero prevhash, x16rt and soterg the order of the fixed benchmark ntime
 		if (variant == X16_R || variant == X16_RV2)
 			((uint8_t*) pdata)[8] = 0xAA;
 	}
@@ -436,7 +466,12 @@ extern "C" int scanhash_timetravel(int thr_id, struct work* work, uint32_t max_n
 	return scanhash_x16(X16_TT, thr_id, work, max_nonce, hashes_done);
 }
 
-// cleanup, shared by the five algos
+extern "C" int scanhash_soterg(int thr_id, struct work* work, uint32_t max_nonce, unsigned long *hashes_done)
+{
+	return scanhash_x16(X16_SG, thr_id, work, max_nonce, hashes_done);
+}
+
+// cleanup, shared by the six algos
 static void free_x16(int thr_id)
 {
 	if (!init[thr_id])
@@ -459,3 +494,4 @@ extern "C" void free_x16s(int thr_id) { free_x16(thr_id); }
 extern "C" void free_x16rv2(int thr_id) { free_x16(thr_id); }
 extern "C" void free_x16rt(int thr_id) { free_x16(thr_id); }
 extern "C" void free_timetravel(int thr_id) { free_x16(thr_id); }
+extern "C" void free_soterg(int thr_id) { free_x16(thr_id); }

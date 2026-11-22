@@ -82,6 +82,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `sha512256d` | Double SHA-512/256 (Radiant) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
 | `skein2` | Skein-512 twice (Woodcoin) |
+| `soterg` | X12R, 12 of the X16R blocks in an order picked by the block time (Soteria) |
 | `timetravel` | Timetravel, 8 of the X16R blocks in an order picked by the block time (Machinecoin) |
 | `tribus` | JH-512 + Keccak-512 + ECHO-512 (Denarius) |
 | `verthash` | SHA-3 + 4096 random reads from the 1.28 GB `verthash.dat` (Vertcoin); `--verthash-data`, `--generate-verthash-dat` |

@@ -5,7 +5,7 @@ Tested hardware
 (`--time-limit=60`). Fast cards throttle as they heat up, so compare runs
 only from the same start temperature (GTX 1080 Ti: anime, blakecoin,
 equihash, heavyhash, hmq1725, hoohash, lbry, rinhash, sha3t, sha512256d,
-timetravel, verthash and whirlpoolx2 50 C, others 55 C):
+soterg, timetravel, verthash and whirlpoolx2 50 C, others 55 C):
 
 | Algorithm | GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
 |---|---|---|---|---|---|
@@ -64,6 +64,8 @@ timetravel, verthash and whirlpoolx2 50 C, others 55 C):
 | skein | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 579 MH/s | 653 MH/s |
 | skein2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 20.04 MH/s (PTX JIT) | 20.02 MH/s |
 | skein2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 589.5 MH/s | 589.4 MH/s |
+| soterg | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 872.0 kH/s (PTX JIT) | 873.8 kH/s |
+| soterg | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 24.31 MH/s | 23.09 MH/s |
 | timetravel | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.214 MH/s (PTX JIT) | 1.220 MH/s |
 | timetravel | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 45.9 MH/s | 46.9 MH/s |
 | tribus | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 2.22 MH/s (PTX JIT) | 2.24 MH/s |
@@ -94,10 +96,11 @@ timetravel, verthash and whirlpoolx2 50 C, others 55 C):
 
 x16r, x16rv2 and x16s benchmark one fixed hash order, the same as tpruvot's
 ccminer (x16r and x16rv2: ECHO, then 15 times BLAKE; x16s: the order of a zero
-previous block hash). x16rt and timetravel benchmark the order of the fixed
-benchmark block time. When mining, the order changes with the block (x16rt: every 128 s), so
-the rate varies: pool runs gave 30 to 60 % of the benchmark rate for x16rv2
-and 50 to 110 % for x16rt.
+previous block hash). x16rt, timetravel and soterg benchmark the order of the
+fixed benchmark block time. When mining, the order changes with the block
+(x16rt: every 128 s; soterg: with the block time, bits 0 to 4 and 6 cleared),
+so the rate varies: pool runs gave 30 to 60 % of the benchmark rate for
+x16rv2, 50 to 110 % for x16rt and 80 to 130 % for soterg.
 
 The equihash rate (solutions per second) swings between the 4 s readings, so
 the table gives the mean of all readings of the run. On the GTX 660M, which

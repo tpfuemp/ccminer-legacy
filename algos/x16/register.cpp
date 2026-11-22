@@ -11,6 +11,8 @@ ALGO_REGISTER(ALGO_X16RT, scanhash_x16rt, free_x16rt, x16rt_hash,
 	"X16RT, X16R with the order taken from the block time");
 ALGO_REGISTER(ALGO_TIMETRAVEL, scanhash_timetravel, free_timetravel, timetravel_hash,
 	"Timetravel, 8 of the X16R blocks in an order picked by the block time (Machinecoin)");
+ALGO_REGISTER(ALGO_SOTERG, scanhash_soterg, free_soterg, soterg_hash,
+	"Soterg (X12R), 12 of the X16R blocks in an order picked by the block time (Soteria)");
 
 // Bitcoin genesis header with a fixed prevhash (first block ECHO, SHA-512, Tiger+Keccak;
 // x16rt: ECHO from the genesis time), nonce giving a hash below 2^232
@@ -41,3 +43,17 @@ static const struct algo_test_vector timetravel_tests[] = {
 	  "b3cef4760ffdaec27b18f0c0665e86420bb04a30d34e9b24ee3f12fba0000000" },
 };
 ALGO_TEST_VECTORS(ALGO_TIMETRAVEL, timetravel_tests);
+
+// The Soteria genesis header with ntime 0x6a000000 (order shabal first) and a synthetic
+// header (byte i = i, sha512 first), each with the lowest nonce (big-endian at byte 76,
+// as the miner scans) whose hash top byte is 0
+static const struct algo_test_vector soterg_tests[] = {
+	{ "040000000000000000000000000000000000000000000000000000000000000000000000f5061cb0cfcc53e8"
+	  "6af50756de76af1863fb6675861a3b8cf98105b2df95cd1e0000006affff001e000000bb",
+	  "3c2bc44c751d2679c318c3dc7a11c9405b34c49f9c796d4e077ce27f2c64ac00" },
+	{ "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+	  "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+	  "404142434445464748494a4b0000006b",
+	  "6e68175147c76afa3740e4eb9384be6294f922e5ca033b59664491d31e5b6300" },
+};
+ALGO_TEST_VECTORS(ALGO_SOTERG, soterg_tests);
