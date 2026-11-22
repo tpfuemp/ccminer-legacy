@@ -326,6 +326,19 @@
     <ClInclude Include="algos\rinhash\argon2\blake2\blamka-round-ref.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\whirlpoolx2\whirlpoolx2.cu" />
+    <CudaCompile Include="algos\whirlpoolx2\cuda_whirlpoolx2.cu" />
+    <ClCompile Include="algos\whirlpoolx2\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\sha512256d\sha512256d.cu" />
+    <ClCompile Include="algos\sha512256d\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="algos\sha3t\sha3t.cu" />
+    <ClCompile Include="algos\sha3t\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\equihash\equihash.cu" />
     <ClCompile Include="algos\equihash\equi-stratum.cpp" />
     <CudaCompile Include="algos\equihash\cuda_equi24b_144.cu" />
@@ -383,6 +396,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="algos\quark\quark.cu" />
+    <CudaCompile Include="algos\quark\anime.cu" />
     <CudaCompile Include="algos\quark\cuda_quark_split.cu" />
     <CudaCompile Include="algos\quark\cuda_quark_selftest.cu" />
     <ClCompile Include="algos\quark\register.cpp" />

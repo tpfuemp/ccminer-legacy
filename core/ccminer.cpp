@@ -2861,7 +2861,6 @@ static void *miner_thread(void *userdata)
 			/* hashrate factors for some algos */
 			double rate_factor = 1.0;
 			switch (opt_algo) {
-				case ALGO_ANIME:
 				case ALGO_JACKPOT:
 					// to stay comparable to other ccminer forks or pools
 					rate_factor = 0.5;

@@ -3,13 +3,16 @@ Tested hardware
 
 `--benchmark` with the default intensity, release builds, 60 s runs
 (`--time-limit=60`). Fast cards throttle as they heat up, so compare runs
-only from the same start temperature (GTX 1080 Ti: blakecoin, equihash,
-hmq1725, hoohash, lbry, rinhash, timetravel and verthash 50 C, others 55 C):
+only from the same start temperature (GTX 1080 Ti: anime, blakecoin,
+equihash, hmq1725, hoohash, lbry, rinhash, sha3t, sha512256d, timetravel,
+verthash and whirlpoolx2 50 C, others 55 C):
 
 | Algorithm | GPU | OS | Driver | CUDA 8 build | CUDA 10.1 build |
 |---|---|---|---|---|---|
 | allium | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 133.4 kH/s (PTX JIT) | 131.1 kH/s |
 | allium | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 5.90 MH/s | 6.89 MH/s |
+| anime | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 1.116 MH/s (PTX JIT) | 1.130 MH/s |
+| anime | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 44.86 MH/s | 45.44 MH/s |
 | bc3hash | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 9.49 kH/s (PTX JIT) | 9.60 kH/s |
 | bc3hash | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 114.1 kH/s | 114.8 kH/s |
 | blake | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 123.6 MH/s (PTX JIT) | 126.1 MH/s |
@@ -51,6 +54,10 @@ hmq1725, hoohash, lbry, rinhash, timetravel and verthash 50 C, others 55 C):
 | rinhash | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1209 kH/s | 1203 kH/s |
 | sha256d | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 46.7 MH/s (PTX JIT) | 46.5 MH/s |
 | sha256d | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1687 MH/s | 1856 MH/s |
+| sha3t | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 7.87 MH/s (PTX JIT) | 7.84 MH/s |
+| sha3t | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 366.5 MH/s | 415.1 MH/s |
+| sha512256d | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 11.03 MH/s (PTX JIT) | 11.03 MH/s |
+| sha512256d | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 618.1 MH/s | 655.0 MH/s |
 | skein | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 22.2 MH/s (PTX JIT) | 22.6 MH/s |
 | skein | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 579 MH/s | 653 MH/s |
 | skein2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 20.04 MH/s (PTX JIT) | 20.02 MH/s |
@@ -63,6 +70,8 @@ hmq1725, hoohash, lbry, rinhash, timetravel and verthash 50 C, others 55 C):
 | verthash | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 506.0 kH/s | 506.1 kH/s |
 | whirlpool | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.664 MH/s (PTX JIT) | 0.657 MH/s |
 | whirlpool | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 76.2 MH/s | 78.0 MH/s |
+| whirlpoolx2 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 29.04 MH/s (PTX JIT) | 29.07 MH/s |
+| whirlpoolx2 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 590.6 MH/s | 595.0 MH/s |
 | x11 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.680 MH/s (PTX JIT) | 0.683 MH/s |
 | x11 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 22.5 MH/s | 22.3 MH/s |
 | x13 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 0.511 MH/s (PTX JIT) | 0.518 MH/s |

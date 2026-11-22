@@ -28,6 +28,8 @@ Equihash verifier (algos/equihash/equi_tromp.h) by John Tromp, and the CUDA
 BLAKE2b (algos/equihash/blake2b_tromp.cuh) by tpruvot, modified by John Tromp.
 HoohashV110 reference (algos/hoohash/ref/) by Hoosat Oy and the PePe-core
 developers, see algos/hoohash/ref/COPYING.
+Whirlpool-80 kernels (algos/whirlpoolx2/cuda_whirlpoolx2.cu) by djm34, tpruvot,
+SP and Provos Alexis, license in the file header.
 
 Third-party code (CC0)
 ----------------------

@@ -52,6 +52,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `-a` name | Coin / description |
 |---|---|
 | `allium` | BLAKE-256, Keccak-256, Lyra2, CubeHash-256, Lyra2, Skein-256, Groestl-256 (Garlicoin) |
+| `anime` | Quark functions in another order, 9 steps, 3 of them hash-dependent (Animecoin) |
 | `bc3hash` | BC3Hash (Bitcoin III, from block 64360), alias `bc3` |
 | `blake` | Blake-256, 14 rounds (Saffroncoin) |
 | `blake2s` | BLAKE2s-256 (Nevacoin) |
@@ -76,6 +77,8 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `qubit` | Luffa + CubeHash + SHAvite + SIMD + ECHO, 512 bits each (Qubit) |
 | `rinhash` | BLAKE3, Argon2d over 64 KB, SHA3-256 (Rincoin) |
 | `sha256d` | SHA256d (Bitcoin) |
+| `sha3t` | SHA3-256 three times (Bitcoin III SHA3 blocks), alias `sha3-256t` |
+| `sha512256d` | Double SHA-512/256 (Radiant) |
 | `skein` | Skein-512 + SHA256 (Skeincoin) |
 | `skein2` | Skein-512 twice (Woodcoin) |
 | `timetravel` | Timetravel, 8 of the X16R blocks in an order picked by the block time (Machinecoin) |
@@ -83,6 +86,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `verthash` | SHA-3 + 4096 random reads from the 1.28 GB `verthash.dat` (Vertcoin); `--verthash-data`, `--generate-verthash-dat` |
 | `whirlcoin` | 4x Whirlpool-T (Whirlcoin), same as `whirlpool` |
 | `whirlpool` | 4x Whirlpool-T (old whirlpool) |
+| `whirlpoolx2` | Whirlpool-512 folded to 256 bits (CapStash) |
 | `x11` | X11, 11 chained 512-bit hashes (Dash) |
 | `x13` | X13, X11 + Hamsi + Fugue, 512 bits each |
 | `x16r` | X16R, 16 chained 512-bit hashes in prevhash order |
