@@ -63,6 +63,7 @@ compiled in, both on the command line and when a pool switches algorithm.
 | `equihash144` | Equihash 144/5 (BitcoinZ and others, the pool can set the personalization); needs 2.8 GB of VRAM, a slower lean solver runs with 1.6 GB |
 | `equihash192` | Equihash 192/7 (YCash, ZClassic and others); needs 5.4 GB of VRAM |
 | `groestl` | Double Groestl-512 (Groestlcoin) |
+| `heavyhash` | HeavyHash: SHA3-256, a 64x64 4-bit matrix product picked by the previous block, SHA3-256 (Optical Bitcoin) |
 | `hmq1725` | 25 chained 512-bit hashes, 8 of them picked per nonce by the hash (Espers), alias `hmq17` |
 | `hoohash` | HoohashV110: BLAKE3 and a 64x64 FP64 matrix pass (PEPEPOW), aliases `hoohash-pepew`, `pepepow` |
 | `keccak` | Keccak-256 (Maxcoin) |

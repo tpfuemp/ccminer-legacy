@@ -339,6 +339,12 @@
     <ClCompile Include="algos\sha3t\register.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="algos\heavyhash\cuda_heavyhash.cu" />
+    <ClCompile Include="algos\heavyhash\heavyhash_cpu.c" />
+    <ClInclude Include="algos\heavyhash\heavyhash_cpu.h" />
+    <ClCompile Include="algos\heavyhash\register.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <CudaCompile Include="algos\equihash\equihash.cu" />
     <ClCompile Include="algos\equihash\equi-stratum.cpp" />
     <CudaCompile Include="algos\equihash\cuda_equi24b_144.cu" />
