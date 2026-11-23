@@ -11,15 +11,30 @@
 #include "miner.h"
 #include "cuda_helper.h"
 #include "cuda/selftest_gate.cuh"
-#include "hoohash_device.cuh"
 #include "ref/hoohash.h"
 
-#define TPB		64
+#define TPB		128   /* a multiple of 32: hoo_matmul votes with the full warp */
 #define MAX_RESULTS	16
+
+/* Before Volta more resident warps for fewer registers. Kepler tuned on the GTX 660M,
+ * sm_5x/6x (checked on the GTX 1080 Ti) and sm_7x+ (no minimum block count) as tuned
+ * in ccminer-tpfuemp */
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 500
+#define HOO_WAIT_K	16
+#define HOO_BOUNDS	__launch_bounds__(TPB, 12)
+#elif defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 700
+#define HOO_WAIT_K	20
+#define HOO_BOUNDS	__launch_bounds__(TPB, 10)
+#else
+#define HOO_WAIT_K	24
+#define HOO_BOUNDS	__launch_bounds__(TPB)
+#endif
+#include "hoohash_device.cuh"
 
 __constant__ static uint8_t c_header[80];   /* wire order, nonce bytes rewritten per thread */
 __device__ static double d_mat[64][64];
 __device__ static double d_matdiv[64][64];
+__device__ static double d_tab[16 * 4096];   /* matdiv * v, the cheap step's addend */
 
 static uint32_t *d_resNonce[MAX_GPUS];
 static uint32_t *h_resNonce[MAX_GPUS];
@@ -35,9 +50,18 @@ __global__ void hoohash_gen_matrix()
 	hoo_generateMatrix(seed, d_mat, d_matdiv);
 }
 
+/* 64 x 64 threads */
+__global__ void hoohash_gen_tab()
+{
+	const int k = blockIdx.x * blockDim.x + threadIdx.x;
+	const double md = (&d_matdiv[0][0])[k];
+	for (int v = 0; v < 16; v++)
+		d_tab[v * 4096 + k] = md * (double)v;
+}
+
 /* digest of one nonce, in ref/hoohash.c output order (byte 31 most significant);
- * the nonce is written big-endian, as be32enc(&data[19]) */
-__device__ __forceinline__ void hoohash_nonce(const uint32_t nonce, uint8_t out[32])
+ * the nonce is written big-endian, as be32enc(&data[19]). The whole warp calls it. */
+__device__ __forceinline__ void hoohash_nonce(const uint32_t nonce, const bool live, uint8_t out[32])
 {
 	uint8_t h[80], first[32], dig[32];
 	for (int i = 0; i < 76; i++)
@@ -47,24 +71,24 @@ __device__ __forceinline__ void hoohash_nonce(const uint32_t nonce, uint8_t out[
 	h[78] = (uint8_t)(nonce >> 8);
 	h[79] = (uint8_t)nonce;
 	blake3_256(h, 80, first);
-	const uint64_t n = (uint64_t)h[76] | ((uint64_t)h[77] << 8) | ((uint64_t)h[78] << 16) | ((uint64_t)h[79] << 24);
-	hoo_matmul(d_mat, d_matdiv, first, dig, n);
+	hoo_matmul(d_mat, d_tab, first, dig, (double)h[76], live);
 	for (int i = 0; i < 32; i++)
 		out[i] = dig[31 - i];
 }
 
 /* resNonce[0] counts candidates, resNonce[1..MAX_RESULTS-1] hold them */
-__global__ __launch_bounds__(TPB)
+__global__ HOO_BOUNDS
 void hoohash_gpu_hash(const uint32_t threads, const uint32_t startNonce,
 	uint32_t *resNonce, const uint64_t highTarget)
 {
 	const uint32_t thread = blockDim.x * blockIdx.x + threadIdx.x;
-	if (thread >= threads)
-		return;
+	const bool live = thread < threads;   /* the tail lanes still vote */
 
 	const uint32_t nonce = startNonce + thread;
 	uint8_t dig[32];
-	hoohash_nonce(nonce, dig);
+	hoohash_nonce(nonce, live, dig);
+	if (!live)
+		return;
 
 	/* top 64 bits against target words 6..7 */
 	uint64_t high = 0;
@@ -77,9 +101,15 @@ void hoohash_gpu_hash(const uint32_t threads, const uint32_t startNonce,
 	}
 }
 
+/* one warp, lane 0 hashes */
 __global__ void hoohash_selftest_kernel(const uint32_t nonce, uint8_t *out)
 {
-	hoohash_nonce(nonce, out);
+	uint8_t dig[32];
+	const bool live = threadIdx.x == 0;
+	hoohash_nonce(nonce, live, dig);
+	if (live)
+		for (int i = 0; i < 32; i++)
+			out[i] = dig[i];
 }
 
 /* the 80 header bytes in wire order */
@@ -95,6 +125,7 @@ static void hoohash_setBlock(const uint32_t *pdata, uint8_t *hdr80)
 		be32enc(hdr80 + 4 * i, pdata[i]);
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(c_header, hdr80, 80, 0, cudaMemcpyHostToDevice));
 	hoohash_gen_matrix <<<1, 1>>> ();
+	hoohash_gen_tab <<<64, 64>>> ();
 }
 
 /* one launch over [start, start + count), returns the candidate count */
@@ -133,7 +164,7 @@ static bool hoohash_selftest_device(int thr_id, const uint32_t *pdata, uint8_t *
 	cudaError_t err = cudaMalloc(&d_out, 32);
 	if (err != cudaSuccess)
 		return selftest_cuda_error(thr_id, "hoohash", err);
-	hoohash_selftest_kernel <<<1, 1>>> (pdata[19], d_out);
+	hoohash_selftest_kernel <<<1, 32>>> (pdata[19], d_out);
 	err = cudaDeviceSynchronize();
 	if (err == cudaSuccess)
 		err = cudaMemcpy(out32, d_out, 32, cudaMemcpyDeviceToHost);
@@ -205,8 +236,8 @@ extern "C" int scanhash_hoohash(int thr_id, struct work *work, uint32_t max_nonc
 	}
 	const uint64_t targetHigh = ((uint64_t)ptarget[7] << 32) | ptarget[6];
 
-	// FP64-bound at 30-45 kH/s per multiprocessor (GTX 660M, GTX 1080 Ti): 2^15
-	// nonces per multiprocessor keep a launch near 1 s, below the 2 s display watchdog
+	// FP64-bound at about 50 kH/s per multiprocessor (GTX 660M): 2^15 nonces per
+	// multiprocessor keep a launch well below the 2 s display watchdog
 	const int dev_id = device_map[thr_id];
 	const uint32_t throughput = cuda_default_throughput(thr_id, (uint32_t) max((int) device_mpcount[dev_id], 1) << 15);
 

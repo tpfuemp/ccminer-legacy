@@ -34,8 +34,8 @@ soterg, timetravel, verthash and whirlpoolx2 50 C, others 55 C):
 | heavyhash | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 388.0 MH/s | 426.5 MH/s |
 | hmq1725 | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 219.4 kH/s (PTX JIT) | 221.2 kH/s |
 | hmq1725 | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 9.68 MH/s | 9.74 MH/s |
-| hoohash | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 63.8 kH/s (PTX JIT) | 63.5 kH/s |
-| hoohash | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1180 kH/s | 1191 kH/s |
+| hoohash | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 103.5 kH/s (PTX JIT) | 108.5 kH/s |
+| hoohash | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 2706 kH/s | 3052 kH/s |
 | keccak | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 21.3 MH/s (PTX JIT) | 21.8 MH/s |
 | keccak | GTX 1080 Ti (`sm_61`) | Ubuntu 24.04 | 580.173.02 | 1176 MH/s | 1205 MH/s |
 | lbry | GTX 660M (`sm_30`) | Windows 10 | 425.31 | 9.43 MH/s (PTX JIT) | 9.47 MH/s |

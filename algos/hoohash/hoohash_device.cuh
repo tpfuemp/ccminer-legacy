@@ -4,12 +4,14 @@
  * built with --fmad=false: the reference rounds every product and sum.
  *
  * The 64x64 matmul is sequential (the running sum of a row and the switch value
- * sw carry over every step), so one thread hashes one nonce.
+ * sw carry over every step), so one thread hashes one nonce; the lanes of a warp
+ * share the costly transform steps (hoo_matmul).
  */
 #pragma once
 #include <stdint.h>
 #include <math.h>
 #include "cuda/blake3_device.cuh"
+#include "cuda/cuda_compat.h"
 
 #define HOO_PI  3.14159265358979323846
 #define HOO_EPS 1e-9
@@ -108,10 +110,20 @@ __device__ double hoo_SafeComplexTransform(double input)
 	return v * rounds;
 }
 
-__device__ __forceinline__ double hoo_TransformFactor(double x)
+/* sw <= 0.02 with sw = p / 1024 - floor(p / 1024), for a finite p >= 0: p / 1024 and
+ * the fraction are exact, so this is (p mod 1024) <= 1024 * 0.02, compared exactly on
+ * the bit patterns (after ccminer-tpfuemp) */
+__device__ __forceinline__ bool hoo_sw_low(double p)
 {
-	const double granularity = 1024.0;
-	return x / granularity - floor(x / granularity);
+	const uint64_t b  = (uint64_t)__double_as_longlong(p);
+	const uint64_t cb = (uint64_t)__double_as_longlong(0.02 * 1024.0);
+	const int e = (int)(b >> 52) - 1023;
+	if (e < 10) return b <= cb;       /* p < 1024: the remainder is p itself */
+	if (e >= 62) return true;         /* p is a multiple of 1024 */
+	const uint64_t m   = (b & 0xFFFFFFFFFFFFFull) | (1ull << 52);
+	const uint64_t rem = m & ((1ull << (62 - e)) - 1);
+	const uint64_t cm  = (cb & 0xFFFFFFFFFFFFFull) | (1ull << 52);
+	return rem <= (cm >> (e - ((int)(cb >> 52) - 1023)));
 }
 
 /* mat from the seed, and matdiv = mat * 0.0001 (the reference's mat * divider) */
@@ -131,46 +143,72 @@ __device__ void hoo_generateMatrix(const uint8_t *seed, double mat[64][64], doub
 		}
 }
 
-/* hashBytes = BLAKE3 of the full header, nonce = LE u32 at byte 76 */
-__device__ void hoo_matmul(const double mat[64][64], const double matdiv[64][64],
-	const uint8_t *hashBytes, uint8_t *output, uint64_t nonce)
+/* The transform steps of a warp run together once this many lanes wait for one, or
+ * when no lane can take a cheap step (set per arch by the includer) */
+#ifndef HOO_WAIT_K
+#define HOO_WAIT_K 24
+#endif
+
+/* hashBytes = BLAKE3 of the full header, nonceMod = the header's byte 76 (the nonce's
+ * low byte as the node reads it). tab[v * 4096 + i * 64 + j] = matdiv[i][j] * v.
+ *
+ * Each lane walks its own (i, j) in the reference order, so its sums are the
+ * reference's bit for bit. A lane whose next step needs the transform (sw <= 0.02)
+ * waits while others take cheap steps; the waiting lanes then evaluate the transform
+ * together instead of one after another. The whole warp must call this (full-mask
+ * votes); a lane with live == false only votes and writes no output. */
+__device__ void hoo_matmul(const double mat[64][64], const double *tab,
+	const uint8_t *hashBytes, uint8_t *output, const double nonceMod, const bool live)
 {
-	uint8_t vector[64], result[32];
-	double product[64];
 	uint32_t H[8];
-
-	for (int i = 0; i < 64; i++) product[i] = 0.0;
-	for (int i = 0; i < 8; i++) H[i] = hoo_read_u32be(hashBytes + i * 4);
+	for (int k = 0; k < 8; k++) H[k] = hoo_read_u32be(hashBytes + k * 4);
 	const double hashXor = (double)(H[0] ^ H[1] ^ H[2] ^ H[3] ^ H[4] ^ H[5] ^ H[6] ^ H[7]);
-	const double nonceMod = (double)(nonce & 0xFF);
 	const double multiplier = 1234;
-	double sw = 0.0;
 
-	for (int i = 0; i < 32; i++) {
-		vector[2 * i]     = hashBytes[i] >> 4;
-		vector[2 * i + 1] = hashBytes[i] & 0x0F;
-	}
+	/* the 64 nibbles (vector[] of the reference), high nibble of each byte first */
+	const uint64_t nw[4] = {
+		((uint64_t)H[0] << 32) | H[1], ((uint64_t)H[2] << 32) | H[3],
+		((uint64_t)H[4] << 32) | H[5], ((uint64_t)H[6] << 32) | H[7] };
 
-	for (int i = 0; i < 64; i++) {
-		for (int j = 0; j < 64; j++) {
-			/* vector[j] == 0 adds +0.0 on both branches (the transform is finite
-			 * and >= 0): skipping it is exact, sw is still recomputed */
-			if (vector[j] != 0) {
-				if (sw <= 0.02) {
-					const double input = (mat[i][j] * hashXor * (double)vector[j] + nonceMod);
-					product[i] += hoo_SafeComplexTransform(input) * (double)vector[j] * multiplier;
-				} else {
-					product[i] += matdiv[i][j] * (double)vector[j];
-				}
+	uint8_t result[32];
+	int i = live ? 0 : 64, j = 0;
+	double prod = 0.0;
+	bool low = true;      /* sw <= 0.02; sw starts at 0 and carries over the rows */
+	uint64_t pend = 0;
+
+	for (;;) {
+		const bool done = i >= 64;
+		const uint64_t w = j < 16 ? nw[0] : j < 32 ? nw[1] : j < 48 ? nw[2] : nw[3];
+		const uint32_t v = done ? 0 : (uint32_t)(w >> (60 - 4 * (j & 15))) & 0xF;
+		/* v == 0 adds +0.0 on both branches (the transform is finite and >= 0):
+		 * it is a cheap step, sw is still recomputed */
+		const bool needT = !done && v != 0 && low;
+		const uint32_t mT = WARP_BALLOT(needT);
+		const uint32_t mC = WARP_BALLOT(!done && !needT);
+		if (!(mT | mC))
+			break;
+		bool step = false;
+		if (mT && (__popc(mT) >= HOO_WAIT_K || !mC)) {
+			if (needT) {
+				const double input = (mat[i][j] * hashXor * (double)v + nonceMod);
+				prod += hoo_SafeComplexTransform(input) * (double)v * multiplier;
+				step = true;
 			}
-			sw = hoo_TransformFactor(product[i]);
+		} else if (!done && !needT) {
+			if (v) prod += tab[v * 4096 + i * 64 + j];
+			step = true;
+		}
+		if (step) {
+			low = hoo_sw_low(prod);
+			if (++j == 64) {
+				/* the row sums are >= 0 and small, so the conversion matches the CPU's */
+				const uint64_t pv = (uint64_t)prod;
+				if (i & 1) result[i >> 1] = hashBytes[i >> 1] ^ (uint8_t)((pend + pv) & 0xFF);
+				else pend = pv;
+				i++; j = 0; prod = 0.0;
+			}
 		}
 	}
-
-	for (int i = 0; i < 64; i += 2) {
-		/* product[] is >= 0 and small, so the conversion matches the CPU's */
-		const uint64_t pval = (uint64_t)product[i] + (uint64_t)product[i + 1];
-		result[i / 2] = hashBytes[i / 2] ^ (uint8_t)(pval & 0xFF);
-	}
-	blake3_256(result, 32, output);
+	if (live)
+		blake3_256(result, 32, output);
 }
